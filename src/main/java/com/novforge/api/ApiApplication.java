@@ -15,6 +15,8 @@ public class ApiApplication {
 		setPropertyIfPresent(dotenv, "DB_URL");
 		setPropertyIfPresent(dotenv, "DB_USERNAME");
 		setPropertyIfPresent(dotenv, "DB_PASSWORD");
+		setPropertyIfPresent(dotenv, "GOOGLE_CLIENT_ID");
+		setPropertyIfPresent(dotenv, "JWT_SECRET");
 
 		SpringApplication.run(ApiApplication.class, args);
 	}
