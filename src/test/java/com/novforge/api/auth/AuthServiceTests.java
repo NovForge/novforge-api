@@ -32,7 +32,7 @@ class AuthServiceTests {
                 1L, "홍길동", "user@example.com", null, Instant.now(), null);
 
         when(googleJwtDecoder.decode("google-id-token")).thenReturn(googleJwt);
-        when(userService.joinGoogleUser(googleJwt)).thenReturn(user);
+        when(userService.getGoogleUser(googleJwt)).thenReturn(user);
         when(jwtEncoder.encode(any())).thenReturn(accessJwt);
 
         AuthService authService = new AuthService(googleJwtDecoder, jwtEncoder, userService, 3600);

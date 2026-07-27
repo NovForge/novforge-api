@@ -36,7 +36,7 @@ public class AuthService {
 
     public AuthDto.LoginResponse loginWithGoogle(String idToken) {
         Jwt googleJwt = googleJwtDecoder.decode(idToken);
-        UserDto.Response user = userService.joinGoogleUser(googleJwt);
+        UserDto.Response user = userService.getGoogleUser(googleJwt);
         String accessToken = issueAccessToken(user);
         return new AuthDto.LoginResponse(accessToken, "Bearer", accessTokenTtl.toSeconds(), user);
     }

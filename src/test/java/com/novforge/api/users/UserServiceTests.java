@@ -38,7 +38,7 @@ class UserServiceTests {
         when(userRepository.save(org.mockito.ArgumentMatchers.any(User.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        UserDto.Response response = userService.joinGoogleUser(jwt);
+        UserDto.Response response = userService.signupGoogleUser(jwt);
 
         assertThat(response.userName()).isEqualTo("홍길동");
         assertThat(response.userEmail()).isEqualTo("user@example.com");

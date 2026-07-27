@@ -8,6 +8,10 @@ import jakarta.validation.constraints.Size;
 public final class UserDto {
     private UserDto() {}
 
+    public record SignupRequest(
+            @NotBlank(message = "Google ID 토큰은 필수입니다.")
+            String idToken) {}
+
     public record Response(
             Long userId,
             String userName,

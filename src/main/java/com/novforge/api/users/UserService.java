@@ -16,11 +16,20 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto.Response joinGoogleUser(Jwt googleJwt) {
+    public UserDto.Response signupGoogleUser(Jwt googleJwt) {
+        if (userRepository.findByGoogleUid(googleJwt.getSubject()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 가입된 Google 계정입니다.");
+        }
+        User user = userRepository.save(new User(
+                googleJwt.getSubject(), requiredClaim(googleJwt, "name"), requiredClaim(googleJwt, "email"),
+                googleJwt.getClaimAsString("picture")));
+        return UserDto.Response.from(user);
+    }
+
+    public UserDto.Response getGoogleUser(Jwt googleJwt) {
         User user = userRepository.findByGoogleUid(googleJwt.getSubject())
-                .orElseGet(() -> userRepository.save(new User(
-                        googleJwt.getSubject(), requiredClaim(googleJwt, "name"), requiredClaim(googleJwt, "email"),
-                        googleJwt.getClaimAsString("picture"))));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "가입되지 않은 Google 계정입니다."));
         return UserDto.Response.from(user);
     }
 
