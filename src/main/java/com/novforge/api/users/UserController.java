@@ -1,5 +1,7 @@
 package com.novforge.api.users;
 
+import java.util.List;
+
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,7 +34,12 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto.Response signup(@Valid @RequestBody UserDto.SignupRequest request) {
         Jwt googleJwt = googleJwtDecoder.decode(request.idToken());
-        return userService.signupGoogleUser(googleJwt);
+        return userService.signupGoogleUser(googleJwt, request.userNickname());
+    }
+
+    @GetMapping
+    public List<UserDto.Response> getUsers(@AuthenticationPrincipal Jwt jwt) {
+        return userService.getAllUsers(jwt);
     }
 
     @GetMapping("/me")

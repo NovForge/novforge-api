@@ -29,7 +29,7 @@ class AuthServiceTests {
         Jwt googleJwt = jwt("google-token", "google-123");
         Jwt accessJwt = jwt("novforge-access-token", "1");
         UserDto.Response user = new UserDto.Response(
-                1L, "홍길동", "user@example.com", null, Instant.now(), null);
+                1L, "홍길동", "노브작가", "user@example.com", null, Instant.now(), null);
 
         when(googleJwtDecoder.decode("google-id-token")).thenReturn(googleJwt);
         when(userService.getGoogleUser(googleJwt)).thenReturn(user);

@@ -1,5 +1,12 @@
 package com.novforge.api.users;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -10,18 +17,27 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
+    private final Set<String> adminEmails;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository,
+                       @Value("${admin.emails:}") String adminEmails) {
         this.userRepository = userRepository;
+        this.adminEmails = Arrays.stream(adminEmails.split(","))
+                .map(String::trim)
+                .filter(email -> !email.isEmpty())
+                .map(email -> email.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Transactional
-    public UserDto.Response signupGoogleUser(Jwt googleJwt) {
+    public UserDto.Response signupGoogleUser(Jwt googleJwt, String requestedNickname) {
         if (userRepository.findByGoogleUid(googleJwt.getSubject()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 가입된 Google 계정입니다.");
         }
+        String nickname = normalizeNickname(requestedNickname);
+        validateNicknameAvailable(nickname, null);
         User user = userRepository.save(new User(
-                googleJwt.getSubject(), requiredClaim(googleJwt, "name"), requiredClaim(googleJwt, "email"),
+                googleJwt.getSubject(), requiredClaim(googleJwt, "name"), nickname, requiredClaim(googleJwt, "email"),
                 googleJwt.getClaimAsString("picture")));
         return UserDto.Response.from(user);
     }
@@ -37,10 +53,19 @@ public class UserService {
         return UserDto.Response.from(findMe(jwt));
     }
 
+    public List<UserDto.Response> getAllUsers(Jwt jwt) {
+        validateAdmin(jwt);
+        return userRepository.findAll().stream()
+                .map(UserDto.Response::from)
+                .toList();
+    }
+
     @Transactional
     public UserDto.Response updateMe(Jwt jwt, UserDto.UpdateRequest request) {
         User user = findMe(jwt);
-        user.updateName(request.userName().trim());
+        String nickname = normalizeNickname(request.userNickname());
+        validateNicknameAvailable(nickname, user.getId());
+        user.updateNickname(nickname);
         return UserDto.Response.from(user);
     }
 
@@ -73,5 +98,24 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Google 계정에 " + claim + " 정보가 없습니다.");
         }
         return value;
+    }
+
+    private String normalizeNickname(String nickname) {
+        return nickname.trim();
+    }
+
+    private void validateNicknameAvailable(String nickname, Long currentUserId) {
+        userRepository.findByNickname(nickname)
+                .filter(user -> currentUserId == null || !user.getId().equals(currentUserId))
+                .ifPresent(user -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 사용 중인 닉네임입니다.");
+                });
+    }
+
+    private void validateAdmin(Jwt jwt) {
+        String email = jwt.getClaimAsString("email");
+        if (email == null || !adminEmails.contains(email.toLowerCase(Locale.ROOT))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자만 사용자 전체 목록을 조회할 수 있습니다.");
+        }
     }
 }

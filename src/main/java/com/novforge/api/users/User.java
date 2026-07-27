@@ -26,6 +26,9 @@ public class User {
     @Column(name = "user_name", nullable = false, length = 50)
     private String name;
 
+    @Column(name = "user_nickname", nullable = false, unique = true, length = 50)
+    private String nickname;
+
     @Column(name = "user_email", nullable = false, unique = true, length = 255)
     private String email;
 
@@ -40,9 +43,10 @@ public class User {
 
     protected User() {}
 
-    public User(String googleUid, String name, String email, String profileImage) {
+    public User(String googleUid, String name, String nickname, String email, String profileImage) {
         this.googleUid = googleUid;
         this.name = name;
+        this.nickname = nickname;
         this.email = email;
         this.profileImage = profileImage;
     }
@@ -53,12 +57,13 @@ public class User {
     @PreUpdate
     void onUpdate() { updatedAt = Instant.now(); }
 
-    public void updateName(String name) { this.name = name; }
+    public void updateNickname(String nickname) { this.nickname = nickname; }
     public void updateProfileImage(String profileImage) { this.profileImage = profileImage; }
 
     public Long getId() { return user_id; }
     public String getGoogleUid() { return googleUid; }
     public String getName() { return name; }
+    public String getNickname() { return nickname; }
     public String getEmail() { return email; }
     public String getProfileImage() { return profileImage; }
     public Instant getCreatedAt() { return createdAt; }
