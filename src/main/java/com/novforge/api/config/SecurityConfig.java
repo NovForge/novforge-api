@@ -16,7 +16,8 @@ public class SecurityConfig {
             "/api/memorys/**",
             "/api/storages/**",
             "/api/power-supplies/**",
-            "/api/cpu-coolers/**"
+            "/api/cpu-coolers/**",
+            "/api/cases/**"
     };
 
     @Bean
