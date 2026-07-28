@@ -31,16 +31,14 @@ Novforge で PC パーツの製品情報と仕様を保存し、一覧照会・�
 
 ## 認証と権限
 
-パーツブランチで使用していた Postman テスト用の一時的な `SecurityConfig` は、ログインブランチとの競合を防ぐため削除しました。ログインブランチをマージした後、そのブランチの `SecurityConfig` に Equipment API のアクセスポリシーを追加する必要があります。
+Equipment のアクセスルールはアプリケーション共通の `SecurityConfig` で管理します。
 
-ログインブランチをマージした後の推奨ポリシーは次のとおりです。
-
-| 機能 | 推奨権限 |
+| 機能 | 権限 |
 |---|---|
-| 一覧・詳細照会 | 認証不要 |
+| 一覧・詳細照会 | Novforge Access Token |
 | 登録・変更・削除 | `ADMIN` 権限が必要 |
 
-ログインブランチの `SecurityFilterChain` に Equipment API のパスを追加し、一つのセキュリティ設定として管理してください。
+共通の `SecurityFilterChain` が Access Token の `email` と `ADMIN_EMAILS` を比較して管理者権限を適用します。未ログインのリクエストは `401 Unauthorized`、一般ユーザーの登録・変更・削除リクエストは `403 Forbidden` を返します。
 
 ## 共通リクエスト・レスポンス規則
 

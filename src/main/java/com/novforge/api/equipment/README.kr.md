@@ -31,16 +31,14 @@ Novforge에서 PC 부품의 제품 정보와 사양을 저장하고 조회·등�
 
 ## 인증 및 권한
 
-부품 브랜치에서 사용했던 Postman 테스트용 임시 `SecurityConfig`는 로그인 브랜치와의 충돌을 방지하기 위해 제거했습니다. 로그인 브랜치 병합 후 해당 브랜치의 `SecurityConfig`에 장비 접근 정책을 추가해야 합니다.
+장비 접근 정책은 애플리케이션의 공통 `SecurityConfig`에서 관리합니다.
 
-로그인 브랜치 병합 후 권장 최종 정책은 다음과 같습니다.
-
-| 기능 | 권장 권한 |
+| 기능 | 권한 |
 |---|---|
-| 목록·상세 조회 | 인증 불필요 |
+| 목록·상세 조회 | Novforge Access Token |
 | 등록·수정·삭제 | `ADMIN` 권한 필요 |
 
-로그인 브랜치의 `SecurityFilterChain`에 장비 경로를 추가하고 하나의 보안 설정으로 관리해야 합니다.
+공통 `SecurityFilterChain`이 Access Token의 `email`과 `ADMIN_EMAILS`를 비교하여 관리자 권한을 적용합니다. 미로그인 요청은 `401 Unauthorized`, 일반 사용자의 등록·수정·삭제 요청은 `403 Forbidden`을 반환합니다.
 
 ## 공통 요청·응답 규칙
 

@@ -1,7 +1,11 @@
 package com.novforge.api.config;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -12,8 +16,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -25,22 +29,60 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
     private static final String GOOGLE_JWK_SET_URI = "https://www.googleapis.com/oauth2/v3/certs";
+    private static final String[] EQUIPMENT_API_PATHS = {
+            "/api/mainboards/**",
+            "/api/motherboards/**",
+            "/api/cpus/**",
+            "/api/gpus/**",
+            "/api/memorys/**",
+            "/api/storages/**",
+            "/api/power-supplies/**",
+            "/api/cpu-coolers/**",
+            "/api/cases/**"
+    };
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/google", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                        .requestMatchers(HttpMethod.POST, EQUIPMENT_API_PATHS).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, EQUIPMENT_API_PATHS).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, EQUIPMENT_API_PATHS).hasRole("ADMIN")
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer(oauth -> oauth.jwt(
+                        jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)))
                 .build();
+    }
+
+    @Bean
+    JwtAuthenticationConverter jwtAuthenticationConverter(
+            @Value("${admin.emails:}") String configuredAdminEmails) {
+        Set<String> adminEmails = Arrays.stream(configuredAdminEmails.split(","))
+                .map(String::trim)
+                .filter(email -> !email.isEmpty())
+                .map(email -> email.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toUnmodifiableSet());
+
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            String email = jwt.getClaimAsString("email");
+            if (email != null && adminEmails.contains(email.toLowerCase(Locale.ROOT))) {
+                return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            }
+            return List.of();
+        });
+        return converter;
     }
 
     @Bean
