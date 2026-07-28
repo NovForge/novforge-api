@@ -13,7 +13,8 @@ public class SecurityConfig {
             "/api/motherboards/**",
             "/api/cpus/**",
             "/api/gpus/**",
-            "/api/memorys/**"
+            "/api/memorys/**",
+            "/api/storages/**"
     };
 
     @Bean
