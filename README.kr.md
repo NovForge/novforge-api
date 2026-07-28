@@ -518,7 +518,7 @@ spring.jpa.hibernate.ddl-auto=update
 
 ## 현재 제한사항
 
-- Equipment 등록·수정·삭제에 대한 공통 관리자 권한 검사는 아직 완전히 연결되지 않았습니다.
+- Equipment 조회는 로그인 사용자에게 허용하며, 등록·수정·삭제는 `ADMIN_EMAILS`에 등록된 관리자만 실행할 수 있습니다.
 - My Build의 단일 부품은 추가·교체할 수 있지만 명시적으로 제거하는 API는 아직 없습니다.
 - My Build의 메모리·보조기억장치 PATCH는 전달된 배열 전체로 교체합니다.
 - 공개 견적 목록·상세 API는 아직 없습니다.
