@@ -31,7 +31,7 @@ Novforge で PC パーツの製品情報と仕様を保存し、一覧照会・�
 
 ## 認証と権限
 
-現在、各機能ブランチで Postman テストを行えるように、Equipment API は `SecurityConfig` で一時的に `permitAll()` に設定され、CSRF 検査からも除外されています。
+パーツブランチで使用していた Postman テスト用の一時的な `SecurityConfig` は、ログインブランチとの競合を防ぐため削除しました。ログインブランチをマージした後、そのブランチの `SecurityConfig` に Equipment API のアクセスポリシーを追加する必要があります。
 
 ログインブランチをマージした後の推奨ポリシーは次のとおりです。
 
@@ -40,7 +40,7 @@ Novforge で PC パーツの製品情報と仕様を保存し、一覧照会・�
 | 一覧・詳細照会 | 認証不要 |
 | 登録・変更・削除 | `ADMIN` 権限が必要 |
 
-ログインブランチの `SecurityFilterChain` と現在の一時的な `SecurityConfig` を同時に残さず、一つのセキュリティ設定へ統合してください。
+ログインブランチの `SecurityFilterChain` に Equipment API のパスを追加し、一つのセキュリティ設定として管理してください。
 
 ## 共通リクエスト・レスポンス規則
 
@@ -507,4 +507,3 @@ DELETE /api/gpus/1
 - CPU の DB カラム `cpu_manufacture` は、提供された DB 仕様の名前をそのまま使用しています。
 - メモリの更新日時 DB カラムは、提供された DB 仕様どおり `update_at` です。
 - 画像ファイル自体はアップロードせず、`imageUrl` 文字列のみを保存します。
-

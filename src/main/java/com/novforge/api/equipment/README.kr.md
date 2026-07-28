@@ -31,7 +31,7 @@ Novforge에서 PC 부품의 제품 정보와 사양을 저장하고 조회·등�
 
 ## 인증 및 권한
 
-현재 장비 API는 각 기능 브랜치에서 Postman 테스트를 할 수 있도록 `SecurityConfig`에서 임시로 `permitAll()` 처리되어 있으며 CSRF 검사에서도 제외되어 있습니다.
+부품 브랜치에서 사용했던 Postman 테스트용 임시 `SecurityConfig`는 로그인 브랜치와의 충돌을 방지하기 위해 제거했습니다. 로그인 브랜치 병합 후 해당 브랜치의 `SecurityConfig`에 장비 접근 정책을 추가해야 합니다.
 
 로그인 브랜치 병합 후 권장 최종 정책은 다음과 같습니다.
 
@@ -40,7 +40,7 @@ Novforge에서 PC 부품의 제품 정보와 사양을 저장하고 조회·등�
 | 목록·상세 조회 | 인증 불필요 |
 | 등록·수정·삭제 | `ADMIN` 권한 필요 |
 
-로그인 브랜치의 `SecurityFilterChain`과 현재 임시 `SecurityConfig`를 그대로 동시에 유지하지 말고 하나의 보안 설정으로 통합해야 합니다.
+로그인 브랜치의 `SecurityFilterChain`에 장비 경로를 추가하고 하나의 보안 설정으로 관리해야 합니다.
 
 ## 공통 요청·응답 규칙
 
@@ -544,4 +544,3 @@ DELETE /api/gpus/1
 - CPU DB 컬럼 `cpu_manufacture`는 제공된 DB 명세의 이름을 그대로 사용합니다.
 - 메모리 수정일 DB 컬럼은 제공된 DB 명세대로 `update_at`입니다.
 - 이미지 파일 자체를 업로드하지 않고 `imageUrl` 문자열만 저장합니다.
-
