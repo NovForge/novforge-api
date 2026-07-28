@@ -60,6 +60,157 @@ Google OpenID Connect による会員登録・ログインに対応し、ログ�
 | Test Database | H2 |
 | Build | Gradle Wrapper |
 
+## Spring Boot を選択した理由
+
+Novforge では、ユーザー認証、パーツ CRUD、複数テーブルの関連、ユーザー別 PC 構成を処理する必要があります。Spring Boot は、これらの機能をレイヤー別に分離し、セキュリティ・DB・検証を一貫した方法で接続するのに適しているため採用しました。
+
+### 選択理由
+
+- Spring MVC で REST API のリクエストとレスポンスを明確に構成できます。
+- Spring Data JPA により、反復的な SQL と CRUD コードを削減できます。
+- Spring Security と OAuth2 Resource Server で JWT 認証を API の前段で共通処理できます。
+- Bean Validation で Controller に入る前後の入力値を検証できます。
+- 依存性注入により Controller、Service、Repository の責任を分離し、テストしやすくなります。
+- Spring Boot の自動設定で Web サーバー、JSON 変換、JPA、DB 接続を迅速に構成できます。
+
+### メリット
+
+| メリット | 説明 |
+|---|---|
+| 開発速度 | 自動設定と Starter 依存関係により初期設定が簡単です。 |
+| レイヤー分離 | Controller、Service、Repository、Entity の役割を明確に分けられます。 |
+| セキュリティ統合 | JWT 検証と保護パスを `SecurityFilterChain` で管理できます。 |
+| DB 生産性 | JPA Repository が基本 CRUD とトランザクションを支援します。 |
+| 検証・例外処理 | Bean Validation と `RestControllerAdvice` で一貫したエラー形式を構成できます。 |
+| テスト支援 | Spring Context、Security、JPA の統合テスト環境が整っています。 |
+| 拡張性 | 公開構成、互換性検証、自動パーツ収集を既存レイヤーへ追加しやすいです。 |
+
+### デメリットとトレードオフ
+
+| デメリット | 現在の対応 |
+|---|---|
+| 学習範囲が広い | パッケージとレイヤー構造を機能別に統一し、README に処理フローを記録します。 |
+| 自動設定により内部動作が見えにくい | Security、JPA、環境変数を明示的な設定と文書で管理します。 |
+| JPA 関連の設定を誤ると N+1 が発生する | My Build では `EntityGraph` で必要な関連パーツをまとめてロードします。 |
+| Entity 変更が DB に直接影響する可能性がある | 現在は `ddl-auto=update` ですが、本番前にマイグレーションツールが必要です。 |
+| 軽量フレームワークより起動時間とメモリ使用量が大きい | 現在の規模では開発生産性と保守性を優先します。 |
+| トランザクション範囲を誤ると Lazy Loading エラーが発生する | Service レイヤーでトランザクションと Entity→DTO 変換を処理します。 |
+
+## 主な技術選択
+
+### Spring Web MVC
+
+HTTP リクエストを Controller に渡し、Java オブジェクトを JSON レスポンスへ変換します。
+
+```text
+HTTP Request
+→ DispatcherServlet
+→ Controller
+→ Service
+→ Repository
+→ PostgreSQL
+→ Response DTO
+→ JSON Response
+```
+
+同期型の処理方式であり、現在の CRUD 中心 API に適しています。大規模なリアルタイムストリーミングが必要になった場合は WebFlux やイベントシステムを検討できます。
+
+### Spring Data JPA と Hibernate
+
+Java Entity と PostgreSQL テーブルをマッピングし、Repository からデータを照会・保存します。
+
+メリット:
+
+- 基本 CRUD の実装量を削減
+- オブジェクト関連でユーザー、構成、パーツを接続
+- トランザクションと変更検知を支援
+- DB を変更しても Service コードへの影響を抑制
+
+注意点:
+
+- 複雑な照会では生成される SQL を確認する必要があります。
+- Fetch 戦略と N+1 問題を管理する必要があります。
+- 本番スキーマ変更を JPA の自動生成だけに依存しない方が安全です。
+
+### PostgreSQL
+
+ユーザー、パーツ、構成など、関連と整合性が重要なデータを保存するためにリレーショナル DB を使用します。
+
+- Foreign Key により存在するユーザーとパーツのみ構成へ接続
+- トランザクションによる一貫したデータ変更
+- 複合キーによるメモリ・ストレージ関連の重複防止
+- 検索、並び替え、統計クエリへ拡張可能
+
+### Spring Security と JWT
+
+Google がユーザーの本人確認を行い、Novforge サーバーが独自の Access Token を発行します。
+
+```text
+Google ID Token
+→ Google 署名・issuer・audience・有効期限を検証
+→ users テーブルで登録済みユーザーを確認
+→ Novforge JWT Access Token を発行
+→ 以後の API で Bearer Token を検証
+```
+
+JWT はサーバーセッションを保存しないため API サーバーの拡張に向いていますが、発行後すぐに強制失効させることが難しいという特徴があります。ログアウトやトークン失効が必要になった場合は、Refresh Token、拒否リスト、トークンバージョンなどのポリシーが必要です。
+
+### H2 テスト DB
+
+テスト時に実際の PostgreSQL データを変更しないよう、H2 インメモリ DB を使用します。
+
+高速で独立したテストが可能ですが、PostgreSQL と SQL 文法・型の動作が完全に同一ではありません。本番前には PostgreSQL を使用する統合テスト環境も追加することが望ましいです。
+
+### Gradle Wrapper
+
+開発者が同じ Gradle バージョンを個別にインストールしなくても、プロジェクトに含まれる Wrapper でビルドできます。
+
+```text
+Windows: .\gradlew.bat
+macOS/Linux: ./gradlew
+```
+
+## アプリケーション動作構造
+
+### 一般的な API リクエスト
+
+```text
+1. クライアントが HTTP リクエストを送信
+2. Spring Security が保護されたパスの Bearer Token を検証
+3. Controller が URL、HTTP Method、JSON Body を DTO に変換
+4. Bean Validation が必須値、文字数、数値範囲を検証
+5. Service がビジネスルールと所有権を検証
+6. Repository が JPA を通して PostgreSQL を照会・変更
+7. Entity を Response DTO に変換
+8. Spring MVC が JSON と HTTP ステータスコードで応答
+```
+
+### My Build 作成リクエスト
+
+```text
+POST /api/my-builds
+→ JWT sub から user_id を確認
+→ リクエストされたパーツ ID を照会
+→ 単一パーツの Foreign Key を接続
+→ メモリ・ストレージと数量を中間テーブルへ保存
+→ サーバーで合計金額を計算
+→ my_build と関連テーブルを保存
+→ 作成された構成を JSON で返す
+```
+
+## レイヤー別の責任
+
+| レイヤー | 責任 |
+|---|---|
+| Controller | HTTP パス、Method、認証ユーザー、リクエスト・レスポンス処理 |
+| Request DTO | クライアント入力構造と Validation |
+| Service | ビジネスルール、トランザクション、所有権、価格計算 |
+| Repository | JPA による DB 照会・保存 |
+| Entity | テーブル・関連マッピングと状態変更 |
+| Response DTO | 外部へ公開するレスポンス構造 |
+| Exception Handler | 例外を HTTP ステータスと Problem Detail へ変換 |
+| SecurityConfig | 公開・保護 API と JWT 検証設定 |
+
 ## プロジェクト構成
 
 ```text
@@ -266,6 +417,24 @@ ADMIN_EMAILS=admin@example.com
 - PostgreSQL
 - Google Cloud OAuth 2.0 Web Client
 
+### 実行前の準備
+
+```text
+1. PostgreSQL に Novforge 用データベースを作成
+2. Google Cloud Console で OAuth 2.0 Web Client を作成
+3. プロジェクトルートに .env を作成
+4. Java 21 が使用されていることを確認
+5. Gradle Wrapper でサーバーを起動
+```
+
+Java バージョンの確認:
+
+```bash
+java -version
+```
+
+Java 21 が表示される必要があります。
+
 ### Windows
 
 ```powershell
@@ -283,6 +452,19 @@ ADMIN_EMAILS=admin@example.com
 ```text
 http://localhost:8080
 ```
+
+サーバー起動時に Spring Boot が Entity を確認し、PostgreSQL に必要なテーブルを作成または変更します。
+
+### 起動確認
+
+専用の Health Check API はまだないため、サーバーコンソールで次のログを確認します。
+
+```text
+Started ApiApplication
+Tomcat started on port 8080
+```
+
+その後、Postman で公開 API の `POST /api/users` または `POST /api/auth/google` を呼び出して動作を確認できます。
 
 ## ビルド・テスト
 
@@ -348,4 +530,3 @@ spring.jpa.hibernate.ddl-auto=update
 - `case` は Java と SQL の予約語であるため、Java パッケージと Entity 名には `pccase`、`PcCase` を使用します。
 - 画像ファイルを直接アップロードせず、画像 URL の文字列を保存します。
 - `totalPrice` はクライアント入力ではなく、サーバー上のパーツ価格から計算します。
-

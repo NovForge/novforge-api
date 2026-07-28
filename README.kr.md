@@ -60,6 +60,157 @@ Google OpenID Connect 기반 회원가입·로그인을 지원하며, 로그인 
 | Test Database | H2 |
 | Build | Gradle Wrapper |
 
+## Spring Boot를 선택한 이유
+
+Novforge는 사용자 인증, 부품 CRUD, 여러 테이블의 관계와 사용자별 견적을 처리해야 합니다. Spring Boot는 이러한 기능을 계층별로 분리하고 보안·DB·검증 기능을 일관된 방식으로 연결하기 적합하여 사용했습니다.
+
+### 선택 이유
+
+- Spring MVC를 이용해 REST API의 요청과 응답을 명확하게 구성할 수 있습니다.
+- Spring Data JPA를 통해 반복적인 SQL과 CRUD 코드를 줄일 수 있습니다.
+- Spring Security와 OAuth2 Resource Server를 사용해 JWT 인증을 API 앞단에서 공통 처리할 수 있습니다.
+- Bean Validation으로 Controller 진입 시 요청값을 검증할 수 있습니다.
+- 의존성 주입을 통해 Controller, Service, Repository의 책임을 분리하고 테스트하기 쉽습니다.
+- Spring Boot 자동 설정으로 웹 서버, Jackson JSON 변환, JPA와 DB 연결을 빠르게 구성할 수 있습니다.
+
+### 장점
+
+| 장점 | 설명 |
+|---|---|
+| 빠른 개발 | 자동 설정과 Starter 의존성으로 초기 환경 구성이 간단합니다. |
+| 계층 분리 | Controller, Service, Repository, Entity 역할을 명확하게 나눌 수 있습니다. |
+| 보안 통합 | JWT 검증과 보호 경로 설정을 `SecurityFilterChain`에서 관리할 수 있습니다. |
+| DB 생산성 | JPA Repository가 기본 CRUD와 트랜잭션 처리를 지원합니다. |
+| 검증과 예외 처리 | Bean Validation과 `RestControllerAdvice`로 일관된 오류 응답을 구성할 수 있습니다. |
+| 테스트 지원 | Spring Context, Security, JPA를 포함한 통합 테스트 도구가 잘 갖춰져 있습니다. |
+| 확장성 | 공개 견적, 호환성 검사, 자동 부품 수집 등의 기능을 기존 계층에 추가하기 쉽습니다. |
+
+### 단점 및 트레이드오프
+
+| 단점 | 현재 프로젝트의 대응 |
+|---|---|
+| 프레임워크 학습 범위가 넓음 | 패키지와 계층 구조를 기능별로 통일하고 README에 처리 흐름을 기록합니다. |
+| 자동 설정으로 실제 동작을 파악하기 어려울 수 있음 | Security, JPA, 환경변수 설정을 명시적인 Configuration과 문서로 관리합니다. |
+| JPA 연관관계를 잘못 설정하면 N+1 조회가 발생할 수 있음 | My Build 조회에서 `EntityGraph`로 필요한 연관 부품을 함께 로딩합니다. |
+| Entity 변경이 운영 DB에 바로 영향을 줄 수 있음 | 현재는 `ddl-auto=update`를 사용하지만 운영 전 마이그레이션 도구 도입이 필요합니다. |
+| 애플리케이션 시작 시간과 메모리 사용량이 단순 프레임워크보다 큼 | 현재 서비스 규모에서는 개발 생산성과 유지보수성을 우선합니다. |
+| 잘못된 트랜잭션 범위에서 Lazy Loading 오류가 발생할 수 있음 | Service 계층에서 트랜잭션과 Entity→DTO 변환을 처리합니다. |
+
+## 주요 기술 선택
+
+### Spring Web MVC
+
+HTTP 요청을 Controller로 전달하고 Java 객체를 JSON 응답으로 변환합니다.
+
+```text
+HTTP Request
+→ DispatcherServlet
+→ Controller
+→ Service
+→ Repository
+→ PostgreSQL
+→ Response DTO
+→ JSON Response
+```
+
+동기식 요청 처리 방식이라 현재 CRUD 중심 API에 적합합니다. 대규모 실시간 스트리밍이 필요해지면 WebFlux 또는 별도 이벤트 시스템을 검토할 수 있습니다.
+
+### Spring Data JPA와 Hibernate
+
+Java Entity와 PostgreSQL 테이블을 매핑하고 Repository를 통해 데이터를 조회·저장합니다.
+
+장점:
+
+- 기본 CRUD 구현량 감소
+- 객체 관계로 사용자, 견적, 부품 연결
+- 트랜잭션과 변경 감지 지원
+- DB 종류가 바뀌어도 Service 코드의 변경 범위가 작음
+
+주의점:
+
+- 복잡한 조회는 생성 SQL을 확인해야 합니다.
+- 연관관계 Fetch 전략과 N+1 문제를 관리해야 합니다.
+- 운영 스키마 변경은 JPA 자동 생성에만 의존하지 않는 것이 안전합니다.
+
+### PostgreSQL
+
+사용자, 부품, 견적처럼 관계와 무결성이 중요한 데이터를 저장하기 위해 관계형 DB를 사용합니다.
+
+- Foreign Key로 존재하는 사용자와 부품만 견적에 연결
+- 트랜잭션을 통한 일관된 데이터 변경
+- 복합키를 이용한 메모리·스토리지 중복 관계 방지
+- 향후 검색, 정렬, 통계 쿼리 확장 가능
+
+### Spring Security와 JWT
+
+Google은 사용자의 신원을 확인하고, Novforge 서버는 자체 Access Token을 발급합니다.
+
+```text
+Google ID Token
+→ Google 서명·issuer·audience·만료 검증
+→ users 테이블에서 가입 사용자 확인
+→ Novforge JWT Access Token 발급
+→ 이후 API 요청의 Bearer Token 검증
+```
+
+JWT는 서버 세션을 저장하지 않아 API 서버 확장에 유리하지만, 발급 후 즉시 강제 만료시키기 어렵습니다. 로그아웃·토큰 폐기 기능이 필요해지면 Refresh Token과 차단 목록 또는 토큰 버전 정책을 추가해야 합니다.
+
+### H2 테스트 DB
+
+테스트에서는 실제 PostgreSQL 데이터를 변경하지 않도록 H2 인메모리 DB를 사용합니다.
+
+빠르고 독립적인 테스트가 가능하지만 PostgreSQL과 SQL 문법 및 타입 동작이 완전히 같지는 않습니다. 운영 전에는 PostgreSQL을 사용하는 통합 테스트 환경도 추가하는 것이 좋습니다.
+
+### Gradle Wrapper
+
+개발자가 별도로 같은 Gradle 버전을 설치하지 않아도 프로젝트에 포함된 Wrapper로 빌드할 수 있습니다.
+
+```text
+Windows: .\gradlew.bat
+macOS/Linux: ./gradlew
+```
+
+## 애플리케이션 동작 구조
+
+### 일반적인 API 요청
+
+```text
+1. 클라이언트가 HTTP 요청 전송
+2. Spring Security가 인증이 필요한 경로의 Bearer Token 검증
+3. Controller가 URL, HTTP Method, JSON Body를 DTO로 변환
+4. Bean Validation이 필수값, 길이, 숫자 범위를 검증
+5. Service가 비즈니스 규칙과 소유권을 검사
+6. Repository가 JPA를 통해 PostgreSQL 조회·변경
+7. Entity를 Response DTO로 변환
+8. Spring MVC가 JSON과 HTTP 상태 코드로 응답
+```
+
+### My Build 생성 요청
+
+```text
+POST /api/my-builds
+→ JWT sub에서 user_id 확인
+→ 요청한 부품 ID 조회
+→ 단일 부품 Foreign Key 연결
+→ 메모리·스토리지와 수량을 중간 테이블에 저장
+→ 서버에서 전체 가격 계산
+→ my_build 및 관계 테이블 저장
+→ 생성된 견적을 JSON으로 반환
+```
+
+## 계층별 책임
+
+| 계층 | 책임 |
+|---|---|
+| Controller | HTTP 경로, Method, 인증 사용자, 요청·응답 처리 |
+| Request DTO | 클라이언트 입력 구조와 Validation |
+| Service | 비즈니스 규칙, 트랜잭션, 소유권, 가격 계산 |
+| Repository | JPA 기반 DB 조회·저장 |
+| Entity | 테이블 및 연관관계 매핑, 상태 변경 |
+| Response DTO | 외부에 공개할 응답 구조 |
+| Exception Handler | 예외를 HTTP 상태 코드와 Problem Detail로 변환 |
+| SecurityConfig | 공개·보호 API와 JWT 검증 설정 |
+
 ## 프로젝트 구조
 
 ```text
@@ -268,6 +419,24 @@ ADMIN_EMAILS=admin@example.com
 - PostgreSQL
 - Google Cloud OAuth 2.0 Web Client
 
+### 실행 전 준비
+
+```text
+1. PostgreSQL에서 Novforge용 데이터베이스 생성
+2. Google Cloud Console에서 OAuth 2.0 Web Client 생성
+3. 프로젝트 루트에 .env 작성
+4. Java 21 사용 여부 확인
+5. Gradle Wrapper로 서버 실행
+```
+
+Java 버전 확인:
+
+```bash
+java -version
+```
+
+정상적으로 Java 21이 표시되어야 합니다.
+
 ### Windows
 
 ```powershell
@@ -285,6 +454,19 @@ ADMIN_EMAILS=admin@example.com
 ```text
 http://localhost:8080
 ```
+
+서버가 실행되면 Spring Boot가 Entity를 확인하고 PostgreSQL에 필요한 테이블을 생성하거나 변경합니다.
+
+### 실행 확인
+
+별도의 Health Check API는 아직 없으므로 서버 콘솔에서 다음 내용을 확인합니다.
+
+```text
+Started ApiApplication
+Tomcat started on port 8080
+```
+
+그다음 Postman에서 공개 API인 `POST /api/users` 또는 `POST /api/auth/google`을 호출하여 동작을 확인할 수 있습니다.
 
 ## 빌드 및 테스트
 
@@ -350,4 +532,3 @@ spring.jpa.hibernate.ddl-auto=update
 - `case`는 Java 및 SQL 예약어이므로 Java 패키지와 Entity 이름에 `pccase`, `PcCase`를 사용합니다.
 - 이미지 파일을 직접 업로드하지 않고 이미지 URL 문자열을 저장합니다.
 - `totalPrice`는 클라이언트 요청이 아니라 서버의 부품 가격으로 계산합니다.
-
