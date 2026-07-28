@@ -8,17 +8,19 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
-    private static final String[] MOTHERBOARD_API_PATHS = {
+    private static final String[] PUBLIC_EQUIPMENT_API_PATHS = {
             "/api/mainboards/**",
-            "/api/motherboards/**"
+            "/api/motherboards/**",
+            "/api/cpus/**",
+            "/api/gpus/**"
     };
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.ignoringRequestMatchers(MOTHERBOARD_API_PATHS))
+                .csrf(csrf -> csrf.ignoringRequestMatchers(PUBLIC_EQUIPMENT_API_PATHS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(MOTHERBOARD_API_PATHS).permitAll()
+                        .requestMatchers(PUBLIC_EQUIPMENT_API_PATHS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .build();
