@@ -87,9 +87,11 @@ dto/
 
 ---
 
-## 메인보드
+## Endpoints
 
-### DB
+### 메인보드
+
+#### DB
 
 - 테이블: `motherboard`
 - Entity: `Motherboard`
@@ -120,7 +122,7 @@ dto/
 | `createdAt` | `created_at` | `TIMESTAMP`, 자동 생성 |
 | `updatedAt` | `updated_at` | `TIMESTAMP`, 수정 시 생성 |
 
-### 등록 예시
+#### 등록 예시
 
 ```http
 POST /api/mainboards
@@ -150,9 +152,9 @@ Content-Type: application/json
 }
 ```
 
-## CPU
+### CPU
 
-### DB
+#### DB
 
 - 테이블: `cpu`
 - Entity: `Cpu`
@@ -179,7 +181,7 @@ Content-Type: application/json
 | `createdAt` | `created_at` | `TIMESTAMP`, 자동 생성 |
 | `updatedAt` | `updated_at` | `TIMESTAMP`, 수정 시 생성 |
 
-### 등록 예시
+#### 등록 예시
 
 ```json
 {
@@ -201,9 +203,9 @@ Content-Type: application/json
 }
 ```
 
-## GPU
+### GPU
 
-### DB
+#### DB
 
 - 테이블: `gpu`
 - Entity: `Gpu`
@@ -225,7 +227,7 @@ Content-Type: application/json
 | `createdAt` | `created_at` | `TIMESTAMP`, 자동 생성 |
 | `updatedAt` | `updated_at` | `TIMESTAMP`, 수정 시 생성 |
 
-### 등록 예시
+#### 등록 예시
 
 ```json
 {
@@ -242,9 +244,9 @@ Content-Type: application/json
 }
 ```
 
-## 메모리
+### 메모리
 
-### DB
+#### DB
 
 - 테이블: `memory`
 - Entity: `Memory`
@@ -270,7 +272,7 @@ Content-Type: application/json
 | `createdAt` | `created_at` | `TIMESTAMP`, 자동 생성 |
 | `updatedAt` | `update_at` | `TIMESTAMP`, 수정 시 생성 |
 
-### 등록 예시
+#### 등록 예시
 
 ```json
 {
@@ -291,9 +293,9 @@ Content-Type: application/json
 }
 ```
 
-## 보조기억장치
+### 보조기억장치
 
-### DB
+#### DB
 
 - 테이블: `storage`
 - Entity: `Storage`
@@ -318,7 +320,7 @@ Content-Type: application/json
 
 `interface`는 Java 예약어이므로 JSON과 Java 필드에서는 `interfaceType`을 사용하고 DB에는 `storage_interface`로 저장합니다.
 
-### 등록 예시
+#### 등록 예시
 
 ```json
 {
@@ -336,9 +338,9 @@ Content-Type: application/json
 }
 ```
 
-## 파워 서플라이
+### 파워 서플라이
 
-### DB
+#### DB
 
 - 테이블: `power`
 - Entity: `PowerSupply`
@@ -359,7 +361,7 @@ Content-Type: application/json
 | `createdAt` | `created_at` | `TIMESTAMP`, 자동 생성 |
 | `updatedAt` | `updated_at` | `TIMESTAMP`, 수정 시 생성 |
 
-### 등록 예시
+#### 등록 예시
 
 ```json
 {
@@ -375,9 +377,9 @@ Content-Type: application/json
 }
 ```
 
-## CPU 쿨러
+### CPU 쿨러
 
-### DB
+#### DB
 
 - 테이블: `cpu_cooler`
 - Entity: `CpuCooler`
@@ -404,7 +406,7 @@ Content-Type: application/json
 
 공랭 쿨러처럼 라디에이터가 없는 제품은 `radiatorSize`에 `0`을 사용합니다.
 
-### 등록 예시
+#### 등록 예시
 
 ```json
 {
@@ -424,9 +426,9 @@ Content-Type: application/json
 }
 ```
 
-## 케이스
+### 케이스
 
-### DB
+#### DB
 
 - 테이블: `case`
 - Entity: `PcCase`
@@ -451,7 +453,7 @@ Content-Type: application/json
 
 `case`는 Java와 SQL의 예약어이므로 Java 패키지는 `pccase`를 사용하며 JPA 테이블 이름은 인용 처리합니다.
 
-### 등록 예시
+#### 등록 예시
 
 ```json
 {
@@ -469,7 +471,7 @@ Content-Type: application/json
 }
 ```
 
-## PATCH 예시
+### PATCH 예시
 
 `PATCH`는 변경할 값만 전달합니다.
 
@@ -485,7 +487,7 @@ Content-Type: application/json
 }
 ```
 
-## DELETE 예시
+### DELETE 예시
 
 ```http
 DELETE /api/gpus/1
