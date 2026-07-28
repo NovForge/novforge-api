@@ -178,6 +178,8 @@ CPU、GPU、メモリなどの実際のパーツデータは削除されませ�
 
 ### 空の構成を作成 — `POST /api/my-builds`
 
+#### Request
+
 ```http
 POST /api/my-builds
 Authorization: Bearer <Novforge Access Token>
@@ -474,4 +476,3 @@ My Build のサービス統合テストでは次の項目を検証します。
 - 実際のパーツ ID は各 Equipment 一覧 API で確認します。
 - 同じメモリまたはストレージ ID を配列に重複して指定せず、`quantity` を使用してください。
 - 構成内のメモリ・ストレージ関連を削除しても、実際のパーツテーブルの製品は削除されません。
-

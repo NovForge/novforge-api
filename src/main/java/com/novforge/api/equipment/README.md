@@ -1,5 +1,4 @@
-# Equipment API
+# Equipment API Documentation
 
-- [한국어 문서](./README.kr.md)
-- [日本語ドキュメント](./README.ja.md)
+[한국어](./README.kr.md) | [日本語](./README.ja.md)
 

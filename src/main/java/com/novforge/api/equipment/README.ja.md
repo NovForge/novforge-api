@@ -87,7 +87,11 @@ dto/
 
 ---
 
-## マザーボード
+## Endpoints
+
+### マザーボード
+
+#### DB
 
 - テーブル: `motherboard`
 - Entity: `Motherboard`
@@ -141,7 +145,9 @@ dto/
 }
 ```
 
-## CPU
+### CPU
+
+#### DB
 
 - テーブル: `cpu`
 - Entity: `Cpu`
@@ -188,7 +194,9 @@ dto/
 }
 ```
 
-## GPU
+### GPU
+
+#### DB
 
 - テーブル: `gpu`
 - Entity: `Gpu`
@@ -225,7 +233,9 @@ dto/
 }
 ```
 
-## メモリ
+### メモリ
+
+#### DB
 
 - テーブル: `memory`
 - Entity: `Memory`
@@ -270,7 +280,9 @@ dto/
 }
 ```
 
-## ストレージ
+### ストレージ
+
+#### DB
 
 - テーブル: `storage`
 - Entity: `Storage`
@@ -311,7 +323,9 @@ dto/
 }
 ```
 
-## 電源ユニット
+### 電源ユニット
+
+#### DB
 
 - テーブル: `power`
 - Entity: `PowerSupply`
@@ -346,7 +360,9 @@ dto/
 }
 ```
 
-## CPU クーラー
+### CPU クーラー
+
+#### DB
 
 - テーブル: `cpu_cooler`
 - Entity: `CpuCooler`
@@ -391,7 +407,9 @@ dto/
 }
 ```
 
-## PC ケース
+### PC ケース
+
+#### DB
 
 - テーブル: `case`
 - Entity: `PcCase`
@@ -432,7 +450,7 @@ dto/
 }
 ```
 
-## PATCH の例
+### PATCH の例
 
 `PATCH` では変更する値だけを送信します。
 
@@ -448,7 +466,7 @@ Content-Type: application/json
 }
 ```
 
-## DELETE の例
+### DELETE の例
 
 ```http
 DELETE /api/gpus/1
