@@ -46,6 +46,21 @@ Google 로그인
 
 Novforge Access Token의 `sub`에는 DB의 `user_id`가 들어가며, `email` claim도 포함됩니다. 기본 만료 시간은 3,600초이며 `JWT_ACCESS_TOKEN_EXPIRATION`으로 변경할 수 있습니다.
 
+## API 접근 정책
+
+| 구분 | 엔드포인트 | 인증 |
+|---|---|---|
+| 회원가입 | `POST /api/users` | 불필요 |
+| Google 로그인 | `POST /api/auth/google` | 불필요 |
+| 공개 견적 목록·상세 | `GET /api/my-builds`, `GET /api/my-builds/{buildId}` | 불필요 |
+| 내 정보·내 견적 | `/api/users/me`, `/api/my-builds/me/**` | Access Token |
+| 장비 조회 | 장비 API의 `GET` | Access Token |
+| 장비 등록·수정·삭제 | 장비 API의 `POST`, `PATCH`, `DELETE` | 관리자 Access Token |
+
+공개 견적 조회는 Postman에서 `Authorization: No Auth`로 호출합니다. 만료되거나 잘못된 Bearer Token을 함께 보내면 공개 경로라도 JWT 검증 단계에서 `401 Unauthorized`가 발생할 수 있습니다.
+
+Access Token의 `email`이 `ADMIN_EMAILS`에 포함되면 Spring Security가 `ROLE_ADMIN`을 부여합니다. 이 권한은 장비 등록·수정·삭제 접근 제어에 사용됩니다.
+
 ## 서버 설정
 
 서버 실행 전에 다음 환경 변수를 설정해야 합니다.
@@ -54,11 +69,13 @@ Novforge Access Token의 `sub`에는 DB의 `user_id`가 들어가며, `email` cl
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 JWT_SECRET=replace-with-a-random-secret-of-at-least-32-characters
 JWT_ACCESS_TOKEN_EXPIRATION=3600
+ADMIN_EMAILS=admin@example.com
 ```
 
 - `GOOGLE_CLIENT_ID`: Google Cloud OAuth 2.0 웹 클라이언트 ID
 - `JWT_SECRET`: Novforge Access Token 서명에 사용하는 32바이트 이상의 비밀키
 - `JWT_ACCESS_TOKEN_EXPIRATION`: Access Token 유효시간(초)
+- `ADMIN_EMAILS`: 관리자 권한을 부여할 Google 이메일, 여러 명은 쉼표로 구분
 
 `JWT_SECRET`은 코드 저장소에 커밋하면 안 됩니다.
 

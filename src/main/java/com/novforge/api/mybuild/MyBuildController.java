@@ -33,19 +33,29 @@ public class MyBuildController {
     }
 
     @GetMapping
-    public List<MyBuildResponse> findAll(@AuthenticationPrincipal Jwt jwt) {
-        return service.findAll(jwt);
+    public List<MyBuildResponse> findPublicBuilds() {
+        return service.findPublicBuilds();
     }
 
     @GetMapping("/{buildId}")
-    public MyBuildResponse findById(
+    public MyBuildResponse findPublicBuild(@PathVariable Long buildId) {
+        return service.findPublicBuild(buildId);
+    }
+
+    @GetMapping("/me")
+    public List<MyBuildResponse> findMyBuilds(@AuthenticationPrincipal Jwt jwt) {
+        return service.findMyBuilds(jwt);
+    }
+
+    @GetMapping("/me/{buildId}")
+    public MyBuildResponse findMyBuild(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long buildId
     ) {
-        return service.findById(jwt, buildId);
+        return service.findMyBuild(jwt, buildId);
     }
 
-    @PostMapping
+    @PostMapping("/me")
     public ResponseEntity<MyBuildResponse> create(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody MyBuildCreateRequest request
@@ -58,7 +68,7 @@ public class MyBuildController {
         return ResponseEntity.created(location).body(response);
     }
 
-    @PatchMapping("/{buildId}")
+    @PatchMapping("/me/{buildId}")
     public MyBuildResponse update(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long buildId,
@@ -67,7 +77,7 @@ public class MyBuildController {
         return service.update(jwt, buildId, request);
     }
 
-    @DeleteMapping("/{buildId}/parts/{partType}")
+    @DeleteMapping("/me/{buildId}/parts/{partType}")
     public MyBuildResponse removeSinglePart(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long buildId,
@@ -80,7 +90,7 @@ public class MyBuildController {
         );
     }
 
-    @DeleteMapping("/{buildId}")
+    @DeleteMapping("/me/{buildId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
             @AuthenticationPrincipal Jwt jwt,

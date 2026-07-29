@@ -68,14 +68,25 @@ public class MyBuildService {
         this.storageRepository = storageRepository;
     }
 
-    public List<MyBuildResponse> findAll(Jwt jwt) {
+    public List<MyBuildResponse> findPublicBuilds() {
+        return myBuildRepository.findAllByPublicBuildTrueOrderByIdDesc().stream()
+                .map(MyBuildResponse::from)
+                .toList();
+    }
+
+    public MyBuildResponse findPublicBuild(Long buildId) {
+        return MyBuildResponse.from(myBuildRepository.findByIdAndPublicBuildTrue(buildId)
+                .orElseThrow(() -> new MyBuildNotFoundException(buildId)));
+    }
+
+    public List<MyBuildResponse> findMyBuilds(Jwt jwt) {
         User user = findUser(jwt);
         return myBuildRepository.findAllByUserOrderByIdDesc(user).stream()
                 .map(MyBuildResponse::from)
                 .toList();
     }
 
-    public MyBuildResponse findById(Jwt jwt, Long buildId) {
+    public MyBuildResponse findMyBuild(Jwt jwt, Long buildId) {
         return MyBuildResponse.from(findOwnedBuild(findUser(jwt), buildId));
     }
 
