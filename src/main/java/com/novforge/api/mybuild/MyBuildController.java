@@ -67,6 +67,19 @@ public class MyBuildController {
         return service.update(jwt, buildId, request);
     }
 
+    @DeleteMapping("/{buildId}/parts/{partType}")
+    public MyBuildResponse removeSinglePart(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long buildId,
+            @PathVariable String partType
+    ) {
+        return service.removeSinglePart(
+                jwt,
+                buildId,
+                MyBuildSinglePartType.fromPathValue(partType)
+        );
+    }
+
     @DeleteMapping("/{buildId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(

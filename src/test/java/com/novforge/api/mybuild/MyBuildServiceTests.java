@@ -96,6 +96,21 @@ class MyBuildServiceTests {
         assertThat(updated.storages()).isEmpty();
         assertThat(updated.publicBuild()).isTrue();
 
+        MyBuildResponse partRemoved = service.removeSinglePart(
+                ownerJwt,
+                created.buildId(),
+                MyBuildSinglePartType.MOTHERBOARD
+        );
+
+        assertThat(partRemoved.motherboard()).isNull();
+        assertThat(partRemoved.totalPrice()).isEqualTo(200_000L);
+
+        assertThatThrownBy(() -> service.removeSinglePart(
+                jwt(anotherUser.getId()),
+                created.buildId(),
+                MyBuildSinglePartType.CPU
+        )).isInstanceOf(MyBuildNotFoundException.class);
+
         assertThatThrownBy(() -> service.findById(jwt(anotherUser.getId()), created.buildId()))
                 .isInstanceOf(MyBuildNotFoundException.class);
     }

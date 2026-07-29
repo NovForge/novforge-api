@@ -119,6 +119,18 @@ public class MyBuildService {
     }
 
     @Transactional
+    public MyBuildResponse removeSinglePart(
+            Jwt jwt,
+            Long buildId,
+            MyBuildSinglePartType partType
+    ) {
+        MyBuild build = findOwnedBuild(findUser(jwt), buildId);
+        build.removeSinglePart(partType);
+        build.updateTotalPrice(calculateTotalPrice(build));
+        return MyBuildResponse.from(myBuildRepository.saveAndFlush(build));
+    }
+
+    @Transactional
     public void delete(Jwt jwt, Long buildId) {
         myBuildRepository.delete(findOwnedBuild(findUser(jwt), buildId));
     }
