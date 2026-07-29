@@ -296,6 +296,7 @@ DELETE /api/{domain}/{id}
 | 自分の構成詳細 | `GET` | `/api/my-builds/{buildId}` | Access Token |
 | 自分の構成作成 | `POST` | `/api/my-builds` | Access Token |
 | 自分の構成変更 | `PATCH` | `/api/my-builds/{buildId}` | Access Token |
+| 単一パーツ削除 | `DELETE` | `/api/my-builds/{buildId}/parts/{partType}` | Access Token |
 | 自分の構成削除 | `DELETE` | `/api/my-builds/{buildId}` | Access Token |
 
 ## 認証フロー
@@ -517,7 +518,6 @@ spring.jpa.hibernate.ddl-auto=update
 ## 現在の制限事項
 
 - Equipment の照会はログインユーザーに許可し、登録・変更・削除は `ADMIN_EMAILS` に登録された管理者のみ実行できます。
-- My Build の単一パーツは追加・交換できますが、明示的に削除する API はまだありません。
 - My Build のメモリ・ストレージ PATCH は送信した配列全体で置き換えます。
 - 公開構成の一覧・詳細 API はまだありません。
 - パーツ間のソケット、規格、電力などの互換性検証はまだありません。

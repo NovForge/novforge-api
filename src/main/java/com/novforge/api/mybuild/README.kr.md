@@ -20,6 +20,7 @@
 | 내 견적 상세 조회 | my-builds | `/api/my-builds/{buildId}` | `GET` | Access Token | 로그인한 사용자의 특정 견적 조회 |
 | 내 견적 생성 | my-builds | `/api/my-builds` | `POST` | Access Token | 빈 견적 또는 선택한 부품이 포함된 견적 생성 |
 | 내 견적 수정 | my-builds | `/api/my-builds/{buildId}` | `PATCH` | Access Token | 견적명, 공개 여부, 부품 및 수량 수정 |
+| 단일 부품 제거 | my-builds | `/api/my-builds/{buildId}/parts/{partType}` | `DELETE` | Access Token | 선택한 단일 부품 관계 제거 및 가격 재계산 |
 | 내 견적 삭제 | my-builds | `/api/my-builds/{buildId}` | `DELETE` | Access Token | 로그인한 사용자의 견적 삭제 |
 
 모든 엔드포인트에 다음 인증 헤더가 필요합니다.
@@ -450,6 +451,28 @@ GPU, 파워, 쿨러, 케이스 추가:
 }
 ```
 
+### 단일 부품 제거 — `DELETE /api/my-builds/{buildId}/parts/{partType}`
+
+메인보드, GPU, CPU, 파워 서플라이, CPU 쿨러 또는 케이스 중 하나를 견적에서 제거합니다.
+
+```http
+DELETE /api/my-builds/1/parts/cpu
+Authorization: Bearer {accessToken}
+```
+
+사용 가능한 `partType`:
+
+```text
+motherboard
+gpu
+cpu
+power-supply
+cpu-cooler
+case
+```
+
+요청 Body는 사용하지 않습니다. 선택한 Foreign Key를 `NULL`로 변경하고 전체 가격을 다시 계산한 뒤 수정된 견적을 `200 OK`로 반환합니다. 이미 비어 있는 부품을 제거해도 정상 응답하며 다른 부품에는 영향을 주지 않습니다.
+
 ### 내 견적 삭제 — `DELETE /api/my-builds/{buildId}`
 
 ```http
@@ -566,7 +589,6 @@ My Build 서비스 통합 테스트에서 다음 항목을 검증합니다.
 
 ## 현재 제한사항
 
-- 단일 부품은 추가하거나 다른 제품으로 교체할 수 있지만, PATCH에서 명시적으로 `null`을 전달하여 제거하는 기능은 아직 제공하지 않습니다.
 - 메모리와 보조기억장치는 배열 일부 추가 방식이 아니라 전달한 배열 전체로 교체합니다.
 - `publicBuild` 값은 저장되지만 공개 견적 목록·상세 API는 아직 제공하지 않습니다.
 - 부품 간 호환성 검증은 아직 제공하지 않습니다.

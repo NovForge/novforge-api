@@ -20,6 +20,7 @@
 | 自分の構成詳細 | my-builds | `/api/my-builds/{buildId}` | `GET` | Access Token | ログイン中ユーザーの特定構成を照会 |
 | 自分の構成作成 | my-builds | `/api/my-builds` | `POST` | Access Token | 空の構成、またはパーツを選択した構成を作成 |
 | 自分の構成変更 | my-builds | `/api/my-builds/{buildId}` | `PATCH` | Access Token | 構成名、公開設定、パーツ、数量を変更 |
+| 単一パーツ削除 | my-builds | `/api/my-builds/{buildId}/parts/{partType}` | `DELETE` | Access Token | 選択した単一パーツの関連を削除し価格を再計算 |
 | 自分の構成削除 | my-builds | `/api/my-builds/{buildId}` | `DELETE` | Access Token | ログイン中ユーザーの構成を削除 |
 
 すべてのエンドポイントで次の認証ヘッダーが必要です。
@@ -376,6 +377,28 @@ GPU、電源、クーラー、ケースを追加:
 }
 ```
 
+### 単一パーツ削除 — `DELETE /api/my-builds/{buildId}/parts/{partType}`
+
+マザーボード、GPU、CPU、電源ユニット、CPU クーラー、PC ケースのうち一つを構成から削除します。
+
+```http
+DELETE /api/my-builds/1/parts/cpu
+Authorization: Bearer {accessToken}
+```
+
+使用可能な `partType`:
+
+```text
+motherboard
+gpu
+cpu
+power-supply
+cpu-cooler
+case
+```
+
+リクエスト Body は使用しません。選択した Foreign Key を `NULL` に変更し、合計金額を再計算した後、更新された構成を `200 OK` で返します。すでに空のパーツを削除しても正常に応答し、他のパーツには影響しません。
+
 ### 自分の構成を削除 — `DELETE /api/my-builds/{buildId}`
 
 ```http
@@ -464,7 +487,6 @@ My Build のサービス統合テストでは次の項目を検証します。
 
 ## 現在の制限事項
 
-- 単一パーツは追加・交換できますが、PATCH で明示的に `null` を指定して削除する機能はまだありません。
 - メモリとストレージは一部追加方式ではなく、送信した配列全体で置き換えます。
 - `publicBuild` は保存されますが、公開構成の一覧・詳細 API はまだありません。
 - パーツ間の互換性検証はまだありません。

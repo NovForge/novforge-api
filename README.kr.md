@@ -296,6 +296,7 @@ DELETE /api/{domain}/{id}
 | 내 견적 상세 | `GET` | `/api/my-builds/{buildId}` | Access Token |
 | 내 견적 생성 | `POST` | `/api/my-builds` | Access Token |
 | 내 견적 수정 | `PATCH` | `/api/my-builds/{buildId}` | Access Token |
+| 단일 부품 제거 | `DELETE` | `/api/my-builds/{buildId}/parts/{partType}` | Access Token |
 | 내 견적 삭제 | `DELETE` | `/api/my-builds/{buildId}` | Access Token |
 
 ## 인증 흐름
@@ -519,7 +520,6 @@ spring.jpa.hibernate.ddl-auto=update
 ## 현재 제한사항
 
 - Equipment 조회는 로그인 사용자에게 허용하며, 등록·수정·삭제는 `ADMIN_EMAILS`에 등록된 관리자만 실행할 수 있습니다.
-- My Build의 단일 부품은 추가·교체할 수 있지만 명시적으로 제거하는 API는 아직 없습니다.
 - My Build의 메모리·보조기억장치 PATCH는 전달된 배열 전체로 교체합니다.
 - 공개 견적 목록·상세 API는 아직 없습니다.
 - 부품 간 소켓, 규격, 전력 등의 호환성 검증은 아직 없습니다.

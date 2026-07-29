@@ -125,6 +125,17 @@ public class MyBuild {
         this.pcCase = pcCase;
     }
 
+    public void removeSinglePart(MyBuildSinglePartType partType) {
+        switch (partType) {
+            case MOTHERBOARD -> motherboard = null;
+            case GPU -> gpu = null;
+            case CPU -> cpu = null;
+            case POWER_SUPPLY -> powerSupply = null;
+            case CPU_COOLER -> cpuCooler = null;
+            case CASE -> pcCase = null;
+        }
+    }
+
     public void replaceMemories(List<MyBuildMemory> newMemories) {
         memories.removeIf(current -> newMemories.stream()
                 .noneMatch(next -> next.getMemory().getId().equals(current.getMemory().getId())));
