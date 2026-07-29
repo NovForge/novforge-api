@@ -10,6 +10,18 @@ import java.util.Optional;
 public interface MyBuildRepository extends JpaRepository<MyBuild, Long> {
 
     @EntityGraph(attributePaths = {
+            "user", "motherboard", "gpu", "cpu", "powerSupply", "cpuCooler", "pcCase",
+            "memories", "memories.memory", "storages", "storages.storage"
+    })
+    List<MyBuild> findAllByPublicBuildTrueOrderByIdDesc();
+
+    @EntityGraph(attributePaths = {
+            "user", "motherboard", "gpu", "cpu", "powerSupply", "cpuCooler", "pcCase",
+            "memories", "memories.memory", "storages", "storages.storage"
+    })
+    Optional<MyBuild> findByIdAndPublicBuildTrue(Long id);
+
+    @EntityGraph(attributePaths = {
             "motherboard", "gpu", "cpu", "powerSupply", "cpuCooler", "pcCase",
             "memories", "memories.memory", "storages", "storages.storage"
     })

@@ -56,6 +56,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/google", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/my-builds/me", "/api/my-builds/me/**")
+                        .authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/my-builds", "/api/my-builds/*")
+                        .permitAll()
                         .requestMatchers(HttpMethod.POST, EQUIPMENT_API_PATHS).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, EQUIPMENT_API_PATHS).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, EQUIPMENT_API_PATHS).hasRole("ADMIN")

@@ -82,7 +82,10 @@ class MyBuildServiceTests {
         assertThat(created.totalPrice()).isEqualTo(270_000L);
         assertThat(created.memories()).singleElement().extracting(MyBuildResponse.PartQuantityResponse::quantity)
                 .isEqualTo(2);
-        assertThat(service.findAll(ownerJwt)).hasSize(1);
+        assertThat(service.findMyBuilds(ownerJwt)).hasSize(1);
+        assertThat(service.findPublicBuilds()).isEmpty();
+        assertThatThrownBy(() -> service.findPublicBuild(created.buildId()))
+                .isInstanceOf(MyBuildNotFoundException.class);
 
         MyBuildResponse updated = service.update(ownerJwt, created.buildId(), new MyBuildUpdateRequest(
                 "수정 견적", null, null, null, null, null, null,
@@ -95,6 +98,11 @@ class MyBuildServiceTests {
         assertThat(updated.totalPrice()).isEqualTo(300_000L);
         assertThat(updated.storages()).isEmpty();
         assertThat(updated.publicBuild()).isTrue();
+        assertThat(service.findPublicBuilds()).singleElement()
+                .extracting(MyBuildResponse::buildId)
+                .isEqualTo(created.buildId());
+        assertThat(service.findPublicBuild(created.buildId()).buildId())
+                .isEqualTo(created.buildId());
 
         MyBuildResponse partRemoved = service.removeSinglePart(
                 ownerJwt,
@@ -111,7 +119,7 @@ class MyBuildServiceTests {
                 MyBuildSinglePartType.CPU
         )).isInstanceOf(MyBuildNotFoundException.class);
 
-        assertThatThrownBy(() -> service.findById(jwt(anotherUser.getId()), created.buildId()))
+        assertThatThrownBy(() -> service.findMyBuild(jwt(anotherUser.getId()), created.buildId()))
                 .isInstanceOf(MyBuildNotFoundException.class);
     }
 

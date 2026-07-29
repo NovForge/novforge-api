@@ -16,14 +16,16 @@
 
 | 기능 | 도메인 | 엔드포인트 | 메서드 | 인증 | 설명 |
 |---|---|---|---|---|---|
-| 내 견적 목록 조회 | my-builds | `/api/my-builds` | `GET` | Access Token | 로그인한 사용자의 견적 목록 조회 |
-| 내 견적 상세 조회 | my-builds | `/api/my-builds/{buildId}` | `GET` | Access Token | 로그인한 사용자의 특정 견적 조회 |
-| 내 견적 생성 | my-builds | `/api/my-builds` | `POST` | Access Token | 빈 견적 또는 선택한 부품이 포함된 견적 생성 |
-| 내 견적 수정 | my-builds | `/api/my-builds/{buildId}` | `PATCH` | Access Token | 견적명, 공개 여부, 부품 및 수량 수정 |
-| 단일 부품 제거 | my-builds | `/api/my-builds/{buildId}/parts/{partType}` | `DELETE` | Access Token | 선택한 단일 부품 관계 제거 및 가격 재계산 |
-| 내 견적 삭제 | my-builds | `/api/my-builds/{buildId}` | `DELETE` | Access Token | 로그인한 사용자의 견적 삭제 |
+| 공개 견적 목록 조회 | my-builds | `/api/my-builds` | `GET` | 불필요 | 공개된 견적 목록 조회 |
+| 공개 견적 상세 조회 | my-builds | `/api/my-builds/{buildId}` | `GET` | 불필요 | 공개된 특정 견적 조회 |
+| 내 견적 목록 조회 | my-builds | `/api/my-builds/me` | `GET` | Access Token | 로그인한 사용자의 전체 견적 목록 조회 |
+| 내 견적 상세 조회 | my-builds | `/api/my-builds/me/{buildId}` | `GET` | Access Token | 로그인한 사용자의 특정 견적 조회 |
+| 내 견적 생성 | my-builds | `/api/my-builds/me` | `POST` | Access Token | 빈 견적 또는 선택한 부품이 포함된 견적 생성 |
+| 내 견적 수정 | my-builds | `/api/my-builds/me/{buildId}` | `PATCH` | Access Token | 견적명, 공개 여부, 부품 및 수량 수정 |
+| 단일 부품 제거 | my-builds | `/api/my-builds/me/{buildId}/parts/{partType}` | `DELETE` | Access Token | 선택한 단일 부품 관계 제거 및 가격 재계산 |
+| 내 견적 삭제 | my-builds | `/api/my-builds/me/{buildId}` | `DELETE` | Access Token | 로그인한 사용자의 견적 삭제 |
 
-모든 엔드포인트에 다음 인증 헤더가 필요합니다.
+내 견적 조회와 생성·수정·삭제 엔드포인트에는 다음 인증 헤더가 필요합니다. 공개 견적 조회에는 인증 헤더가 필요하지 않습니다.
 
 ```http
 Authorization: Bearer <Novforge Access Token>
@@ -39,7 +41,7 @@ Google ID Token 발급
 → POST /api/auth/google로 로그인
 → Novforge Access Token 발급
 → Authorization: Bearer <accessToken>
-→ /api/my-builds 호출
+→ /api/my-builds/me 호출
 ```
 
 이미 가입된 사용자는 회원가입을 생략하고 로그인부터 진행할 수 있습니다.
@@ -181,12 +183,12 @@ CPU, GPU, 메모리 등 실제 부품 데이터는 삭제되지 않습니다.
 
 ## Endpoints
 
-### 빈 견적 생성 — `POST /api/my-builds`
+### 빈 견적 생성 — `POST /api/my-builds/me`
 
 견적명과 공개 여부만 전달하여 부품이 없는 견적을 먼저 생성할 수 있습니다.
 
 ```http
-POST /api/my-builds
+POST /api/my-builds/me
 Authorization: Bearer <Novforge Access Token>
 Content-Type: application/json
 ```
@@ -224,7 +226,7 @@ Content-Type: application/json
 
 `userId`와 `totalPrice`는 요청에서 받지 않습니다.
 
-### 전체 부품 견적 생성 — `POST /api/my-builds`
+### 전체 부품 견적 생성 — `POST /api/my-builds/me`
 
 부품을 선택한 상태로 견적을 바로 생성할 수도 있습니다.
 
@@ -259,14 +261,30 @@ Content-Type: application/json
 
 각 부품 ID는 기존 부품 테이블에 실제로 존재해야 합니다.
 
-### 내 견적 목록 조회 — `GET /api/my-builds`
+### 공개 견적 목록 조회 — `GET /api/my-builds`
 
 ```http
 GET /api/my-builds
+```
+
+인증 없이 호출할 수 있으며 `publicBuild=true`인 견적만 ID 내림차순으로 반환합니다.
+
+### 공개 견적 상세 조회 — `GET /api/my-builds/{buildId}`
+
+```http
+GET /api/my-builds/1
+```
+
+공개된 견적만 반환합니다. 존재하지 않거나 비공개인 견적은 모두 `404 Not Found`로 처리하여 비공개 견적의 존재 여부를 노출하지 않습니다.
+
+### 내 견적 목록 조회 — `GET /api/my-builds/me`
+
+```http
+GET /api/my-builds/me
 Authorization: Bearer <Novforge Access Token>
 ```
 
-Access Token 사용자가 소유한 견적만 ID 내림차순으로 반환합니다.
+Access Token 사용자가 소유한 공개·비공개 견적을 모두 ID 내림차순으로 반환합니다.
 
 ```json
 [
@@ -334,19 +352,19 @@ Access Token 사용자가 소유한 견적만 ID 내림차순으로 반환합니
 ]
 ```
 
-### 내 견적 상세 조회 — `GET /api/my-builds/{buildId}`
+### 내 견적 상세 조회 — `GET /api/my-builds/me/{buildId}`
 
 ```http
-GET /api/my-builds/1
+GET /api/my-builds/me/1
 Authorization: Bearer <Novforge Access Token>
 ```
 
 요청한 견적이 없거나 다른 사용자의 견적이면 `404 Not Found`를 반환합니다.
 
-### 견적에 부품 추가·교체 — `PATCH /api/my-builds/{buildId}`
+### 견적에 부품 추가·교체 — `PATCH /api/my-builds/me/{buildId}`
 
 ```http
-PATCH /api/my-builds/1
+PATCH /api/my-builds/me/1
 Authorization: Bearer <Novforge Access Token>
 Content-Type: application/json
 ```
@@ -451,12 +469,12 @@ GPU, 파워, 쿨러, 케이스 추가:
 }
 ```
 
-### 단일 부품 제거 — `DELETE /api/my-builds/{buildId}/parts/{partType}`
+### 단일 부품 제거 — `DELETE /api/my-builds/me/{buildId}/parts/{partType}`
 
 메인보드, GPU, CPU, 파워 서플라이, CPU 쿨러 또는 케이스 중 하나를 견적에서 제거합니다.
 
 ```http
-DELETE /api/my-builds/1/parts/cpu
+DELETE /api/my-builds/me/1/parts/cpu
 Authorization: Bearer {accessToken}
 ```
 
@@ -473,10 +491,10 @@ case
 
 요청 Body는 사용하지 않습니다. 선택한 Foreign Key를 `NULL`로 변경하고 전체 가격을 다시 계산한 뒤 수정된 견적을 `200 OK`로 반환합니다. 이미 비어 있는 부품을 제거해도 정상 응답하며 다른 부품에는 영향을 주지 않습니다.
 
-### 내 견적 삭제 — `DELETE /api/my-builds/{buildId}`
+### 내 견적 삭제 — `DELETE /api/my-builds/me/{buildId}`
 
 ```http
-DELETE /api/my-builds/1
+DELETE /api/my-builds/me/1
 Authorization: Bearer <Novforge Access Token>
 ```
 
@@ -530,7 +548,7 @@ Novforge Access Token의 sub
 | `400 Bad Request` | 존재하지 않는 부품 ID, 중복 메모리·저장장치 ID, 잘못된 수량, 필수값 누락 |
 | `401 Unauthorized` | Novforge Access Token 누락·오류·만료 |
 | `404 Not Found` | 견적이 존재하지 않거나 다른 사용자의 견적인 경우 |
-| `405 Method Not Allowed` | `PATCH /api/my-builds`처럼 `{buildId}` 없이 수정 요청 |
+| `405 Method Not Allowed` | `PATCH /api/my-builds/me`처럼 `{buildId}` 없이 수정 요청 |
 | `415 Unsupported Media Type` | JSON 요청에 `Content-Type: application/json`을 사용하지 않음 |
 
 존재하지 않는 부품을 선택한 경우:
@@ -562,14 +580,14 @@ Novforge Access Token의 sub
 2. POST /api/users로 회원가입
 3. POST /api/auth/google로 Novforge Access Token 발급
 4. 필요한 부품 목록 API에서 부품 ID 확인
-5. POST /api/my-builds로 빈 견적 생성
-6. GET /api/my-builds로 목록 확인
-7. PATCH /api/my-builds/{buildId}로 단일 부품 추가
+5. POST /api/my-builds/me로 빈 견적 생성
+6. GET /api/my-builds/me로 내 견적 목록 확인
+7. PATCH /api/my-builds/me/{buildId}로 단일 부품 추가
 8. PATCH로 메모리와 보조기억장치 및 수량 추가
 9. totalPrice 자동 계산 확인
-10. GET /api/my-builds/{buildId}로 상세 확인
+10. GET /api/my-builds/me/{buildId}로 내 견적 상세 확인
 11. 다른 사용자 토큰으로 같은 buildId 조회 시 404 확인
-12. DELETE /api/my-builds/{buildId}로 삭제
+12. DELETE /api/my-builds/me/{buildId}로 삭제
 13. 삭제한 buildId 재조회 시 404 확인
 ```
 
@@ -590,7 +608,6 @@ My Build 서비스 통합 테스트에서 다음 항목을 검증합니다.
 ## 현재 제한사항
 
 - 메모리와 보조기억장치는 배열 일부 추가 방식이 아니라 전달한 배열 전체로 교체합니다.
-- `publicBuild` 값은 저장되지만 공개 견적 목록·상세 API는 아직 제공하지 않습니다.
 - 부품 간 호환성 검증은 아직 제공하지 않습니다.
 - 부품 가격이 변경되어도 기존 견적의 `totalPrice`는 견적을 수정할 때 다시 계산됩니다.
 - 부품 조회는 로그인 사용자에게 허용되며, 등록·수정·삭제는 `ADMIN_EMAILS`에 등록된 관리자만 실행할 수 있습니다.

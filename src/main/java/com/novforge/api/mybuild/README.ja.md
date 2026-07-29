@@ -16,14 +16,16 @@
 
 | 機能 | ドメイン | エンドポイント | メソッド | 認証 | 説明 |
 |---|---|---|---|---|---|
-| 自分の構成一覧 | my-builds | `/api/my-builds` | `GET` | Access Token | ログイン中ユーザーの構成一覧を照会 |
-| 自分の構成詳細 | my-builds | `/api/my-builds/{buildId}` | `GET` | Access Token | ログイン中ユーザーの特定構成を照会 |
-| 自分の構成作成 | my-builds | `/api/my-builds` | `POST` | Access Token | 空の構成、またはパーツを選択した構成を作成 |
-| 自分の構成変更 | my-builds | `/api/my-builds/{buildId}` | `PATCH` | Access Token | 構成名、公開設定、パーツ、数量を変更 |
-| 単一パーツ削除 | my-builds | `/api/my-builds/{buildId}/parts/{partType}` | `DELETE` | Access Token | 選択した単一パーツの関連を削除し価格を再計算 |
-| 自分の構成削除 | my-builds | `/api/my-builds/{buildId}` | `DELETE` | Access Token | ログイン中ユーザーの構成を削除 |
+| 公開構成一覧 | my-builds | `/api/my-builds` | `GET` | 不要 | 公開された構成一覧を照会 |
+| 公開構成詳細 | my-builds | `/api/my-builds/{buildId}` | `GET` | 不要 | 公開された特定構成を照会 |
+| 自分の構成一覧 | my-builds | `/api/my-builds/me` | `GET` | Access Token | ログイン中ユーザーの全構成を照会 |
+| 自分の構成詳細 | my-builds | `/api/my-builds/me/{buildId}` | `GET` | Access Token | ログイン中ユーザーの特定構成を照会 |
+| 自分の構成作成 | my-builds | `/api/my-builds/me` | `POST` | Access Token | 空の構成、またはパーツを選択した構成を作成 |
+| 自分の構成変更 | my-builds | `/api/my-builds/me/{buildId}` | `PATCH` | Access Token | 構成名、公開設定、パーツ、数量を変更 |
+| 単一パーツ削除 | my-builds | `/api/my-builds/me/{buildId}/parts/{partType}` | `DELETE` | Access Token | 選択した単一パーツの関連を削除し価格を再計算 |
+| 自分の構成削除 | my-builds | `/api/my-builds/me/{buildId}` | `DELETE` | Access Token | ログイン中ユーザーの構成を削除 |
 
-すべてのエンドポイントで次の認証ヘッダーが必要です。
+自分の構成照会と作成・変更・削除エンドポイントでは次の認証ヘッダーが必要です。公開構成の照会には認証ヘッダーは不要です。
 
 ```http
 Authorization: Bearer <Novforge Access Token>
@@ -39,7 +41,7 @@ Google ID Token を発行
 → POST /api/auth/google でログイン
 → Novforge Access Token を発行
 → Authorization: Bearer <accessToken>
-→ /api/my-builds を呼び出す
+→ /api/my-builds/me を呼び出す
 ```
 
 登録済みのユーザーは会員登録を省略してログインから開始できます。
@@ -177,12 +179,12 @@ CPU、GPU、メモリなどの実際のパーツデータは削除されませ�
 
 ## Endpoints
 
-### 空の構成を作成 — `POST /api/my-builds`
+### 空の構成を作成 — `POST /api/my-builds/me`
 
 #### Request
 
 ```http
-POST /api/my-builds
+POST /api/my-builds/me
 Authorization: Bearer <Novforge Access Token>
 Content-Type: application/json
 ```
@@ -218,7 +220,7 @@ Content-Type: application/json
 
 `userId` と `totalPrice` はリクエストから受け取りません。
 
-### パーツを含む構成を作成 — `POST /api/my-builds`
+### パーツを含む構成を作成 — `POST /api/my-builds/me`
 
 ```json
 {
@@ -251,28 +253,44 @@ Content-Type: application/json
 
 各パーツ ID は既存のパーツテーブルに存在する必要があります。
 
-### 自分の構成一覧 — `GET /api/my-builds`
+### 公開構成一覧 — `GET /api/my-builds`
 
 ```http
 GET /api/my-builds
-Authorization: Bearer <Novforge Access Token>
 ```
 
-Access Token のユーザーが所有する構成のみを ID の降順で返します。
+認証なしで呼び出すことができ、`publicBuild=true` の構成のみを ID の降順で返します。
 
-### 自分の構成詳細 — `GET /api/my-builds/{buildId}`
+### 公開構成詳細 — `GET /api/my-builds/{buildId}`
 
 ```http
 GET /api/my-builds/1
+```
+
+公開された構成のみを返します。存在しない構成と非公開構成はどちらも `404 Not Found` とし、非公開構成の存在を公開しません。
+
+### 自分の構成一覧 — `GET /api/my-builds/me`
+
+```http
+GET /api/my-builds/me
+Authorization: Bearer <Novforge Access Token>
+```
+
+Access Token のユーザーが所有する公開・非公開の構成をすべて ID の降順で返します。
+
+### 自分の構成詳細 — `GET /api/my-builds/me/{buildId}`
+
+```http
+GET /api/my-builds/me/1
 Authorization: Bearer <Novforge Access Token>
 ```
 
 指定した構成が存在しない場合、または他のユーザーの構成である場合は `404 Not Found` を返します。
 
-### パーツの追加・交換 — `PATCH /api/my-builds/{buildId}`
+### パーツの追加・交換 — `PATCH /api/my-builds/me/{buildId}`
 
 ```http
-PATCH /api/my-builds/1
+PATCH /api/my-builds/me/1
 Authorization: Bearer <Novforge Access Token>
 Content-Type: application/json
 ```
@@ -377,12 +395,12 @@ GPU、電源、クーラー、ケースを追加:
 }
 ```
 
-### 単一パーツ削除 — `DELETE /api/my-builds/{buildId}/parts/{partType}`
+### 単一パーツ削除 — `DELETE /api/my-builds/me/{buildId}/parts/{partType}`
 
 マザーボード、GPU、CPU、電源ユニット、CPU クーラー、PC ケースのうち一つを構成から削除します。
 
 ```http
-DELETE /api/my-builds/1/parts/cpu
+DELETE /api/my-builds/me/1/parts/cpu
 Authorization: Bearer {accessToken}
 ```
 
@@ -399,10 +417,10 @@ case
 
 リクエスト Body は使用しません。選択した Foreign Key を `NULL` に変更し、合計金額を再計算した後、更新された構成を `200 OK` で返します。すでに空のパーツを削除しても正常に応答し、他のパーツには影響しません。
 
-### 自分の構成を削除 — `DELETE /api/my-builds/{buildId}`
+### 自分の構成を削除 — `DELETE /api/my-builds/me/{buildId}`
 
 ```http
-DELETE /api/my-builds/1
+DELETE /api/my-builds/me/1
 Authorization: Bearer <Novforge Access Token>
 ```
 
@@ -450,7 +468,7 @@ Novforge Access Token の sub
 | `400 Bad Request` | 存在しないパーツ ID、重複したメモリ・ストレージ ID、不正な数量、必須項目不足 |
 | `401 Unauthorized` | Novforge Access Token の不足・不正・期限切れ |
 | `404 Not Found` | 構成が存在しない、または他のユーザーの構成 |
-| `405 Method Not Allowed` | `PATCH /api/my-builds` のように `{buildId}` なしで変更を要求 |
+| `405 Method Not Allowed` | `PATCH /api/my-builds/me` のように `{buildId}` なしで変更を要求 |
 | `415 Unsupported Media Type` | JSON リクエストで `Content-Type: application/json` を使用していない |
 
 ## Postman 総合テスト手順
@@ -460,14 +478,14 @@ Novforge Access Token の sub
 2. POST /api/users で会員登録
 3. POST /api/auth/google で Novforge Access Token を発行
 4. Equipment 一覧 API でパーツ ID を確認
-5. POST /api/my-builds で空の構成を作成
-6. GET /api/my-builds で一覧を確認
-7. PATCH /api/my-builds/{buildId} で単一パーツを追加
+5. POST /api/my-builds/me で空の構成を作成
+6. GET /api/my-builds/me で自分の構成一覧を確認
+7. PATCH /api/my-builds/me/{buildId} で単一パーツを追加
 8. PATCH でメモリ・ストレージと数量を追加
 9. totalPrice の自動計算を確認
-10. GET /api/my-builds/{buildId} で詳細を確認
+10. GET /api/my-builds/me/{buildId} で自分の構成詳細を確認
 11. 他のユーザーの Token で同じ buildId を照会し 404 を確認
-12. DELETE /api/my-builds/{buildId} で削除
+12. DELETE /api/my-builds/me/{buildId} で削除
 13. 削除した buildId の再照会で 404 を確認
 ```
 
@@ -488,7 +506,6 @@ My Build のサービス統合テストでは次の項目を検証します。
 ## 現在の制限事項
 
 - メモリとストレージは一部追加方式ではなく、送信した配列全体で置き換えます。
-- `publicBuild` は保存されますが、公開構成の一覧・詳細 API はまだありません。
 - パーツ間の互換性検証はまだありません。
 - パーツ価格を変更しても、既存構成の `totalPrice` は構成を変更した時に再計算されます。
 - Equipment の照会はログインユーザーに許可され、登録・変更・削除は `ADMIN_EMAILS` に登録された管理者のみ実行できます。
