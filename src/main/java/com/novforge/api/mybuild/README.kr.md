@@ -284,6 +284,10 @@ GET /api/my-builds/me
 Authorization: Bearer <Novforge Access Token>
 ```
 
+공개 경로는 Postman에서 `Authorization: No Auth`, `Body: none`으로 호출합니다. 만료되거나 잘못된 Bearer Token을 보내면 공개 경로에서도 `401 Unauthorized`가 발생할 수 있습니다.
+
+`/api/my-builds/me` 아래의 모든 API는 Access Token의 `sub`와 견적 소유자를 비교합니다. 공개 견적이라도 소유자가 아닌 사용자는 수정·부품 제거·삭제할 수 없습니다.
+
 Access Token 사용자가 소유한 공개·비공개 견적을 모두 ID 내림차순으로 반환합니다.
 
 ```json
@@ -610,7 +614,6 @@ My Build 서비스 통합 테스트에서 다음 항목을 검증합니다.
 - 메모리와 보조기억장치는 배열 일부 추가 방식이 아니라 전달한 배열 전체로 교체합니다.
 - 부품 간 호환성 검증은 아직 제공하지 않습니다.
 - 부품 가격이 변경되어도 기존 견적의 `totalPrice`는 견적을 수정할 때 다시 계산됩니다.
-- 부품 조회는 로그인 사용자에게 허용되며, 등록·수정·삭제는 `ADMIN_EMAILS`에 등록된 관리자만 실행할 수 있습니다.
 
 ## Notes
 

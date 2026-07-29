@@ -46,6 +46,21 @@ Google ログイン
 
 Novforge Access Token の `sub` には DB の `user_id` が入り、`email` claim も含まれます。デフォルトの有効期限は 3,600 秒で、`JWT_ACCESS_TOKEN_EXPIRATION` で変更できます。
 
+## API アクセスポリシー
+
+| 区分 | エンドポイント | 認証 |
+|---|---|---|
+| 会員登録 | `POST /api/users` | 不要 |
+| Google ログイン | `POST /api/auth/google` | 不要 |
+| 公開構成の一覧・詳細 | `GET /api/my-builds`, `GET /api/my-builds/{buildId}` | 不要 |
+| 自分の情報・構成 | `/api/users/me`, `/api/my-builds/me/**` | Access Token |
+| Equipment 照会 | Equipment API の `GET` | Access Token |
+| Equipment 登録・変更・削除 | Equipment API の `POST`, `PATCH`, `DELETE` | 管理者 Access Token |
+
+公開構成の照会は Postman で `Authorization: No Auth` を選択します。期限切れ、または不正な Bearer Token を同時に送信すると、公開パスでも JWT 検証段階で `401 Unauthorized` になる場合があります。
+
+Access Token の `email` が `ADMIN_EMAILS` に含まれている場合、Spring Security が `ROLE_ADMIN` を付与します。この権限は Equipment の登録・変更・削除のアクセス制御に使用されます。
+
 ## サーバー設定
 
 サーバーを起動する前に、以下の環境変数を設定する必要があります。
@@ -54,11 +69,13 @@ Novforge Access Token の `sub` には DB の `user_id` が入り、`email` clai
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 JWT_SECRET=replace-with-a-random-secret-of-at-least-32-characters
 JWT_ACCESS_TOKEN_EXPIRATION=3600
+ADMIN_EMAILS=admin@example.com
 ```
 
 - `GOOGLE_CLIENT_ID`: Google Cloud OAuth 2.0 Web クライアント ID
 - `JWT_SECRET`: Novforge Access Token の署名に使用する 32 バイト以上の秘密鍵
 - `JWT_ACCESS_TOKEN_EXPIRATION`: Access Token の有効期間（秒）
+- `ADMIN_EMAILS`: 管理者権限を付与する Google メールアドレス、複数指定はカンマ区切り
 
 `JWT_SECRET` はコードリポジトリにコミットしないでください。
 

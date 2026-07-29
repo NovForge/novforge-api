@@ -48,7 +48,7 @@ Authorization: Bearer <Novforge Access Token>
 
 ## 管理者設定
 
-`.env` に、全ユーザー照会を許可する Google メールアドレスを指定します。
+`.env` に管理者権限を付与する Google メールアドレスを指定します。管理者は全ユーザー一覧を照会し、Equipment を登録・変更・削除できます。
 
 ```env
 ADMIN_EMAILS=admin@example.com

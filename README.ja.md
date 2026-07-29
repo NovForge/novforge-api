@@ -302,6 +302,8 @@ DELETE /api/{domain}/{id}
 | 単一パーツ削除 | `DELETE` | `/api/my-builds/me/{buildId}/parts/{partType}` | Access Token |
 | 自分の構成削除 | `DELETE` | `/api/my-builds/me/{buildId}` | Access Token |
 
+公開構成の照会は `Authorization` ヘッダーなしで呼び出します。不正または期限切れの Bearer Token を同時に送信すると、公開パスでも `401 Unauthorized` になる場合があります。`/api/my-builds/me` 配下の変更 API は、公開設定に関係なく所有者のみ呼び出せます。
+
 ## 認証フロー
 
 ```text
@@ -520,7 +522,6 @@ spring.jpa.hibernate.ddl-auto=update
 
 ## 現在の制限事項
 
-- Equipment の照会はログインユーザーに許可し、登録・変更・削除は `ADMIN_EMAILS` に登録された管理者のみ実行できます。
 - My Build のメモリ・ストレージ PATCH は送信した配列全体で置き換えます。
 - パーツ間のソケット、規格、電力などの互換性検証はまだありません。
 - パーツデータの自動収集と販売終了ステータス管理はまだありません。

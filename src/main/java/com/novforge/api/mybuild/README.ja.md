@@ -276,6 +276,10 @@ GET /api/my-builds/me
 Authorization: Bearer <Novforge Access Token>
 ```
 
+公開パスは Postman で `Authorization: No Auth`、`Body: none` として呼び出します。期限切れ、または不正な Bearer Token を送信すると、公開パスでも `401 Unauthorized` になる場合があります。
+
+`/api/my-builds/me` 配下のすべての API は Access Token の `sub` と構成の所有者を比較します。公開構成であっても、所有者以外は変更・パーツ削除・構成削除を実行できません。
+
 Access Token のユーザーが所有する公開・非公開の構成をすべて ID の降順で返します。
 
 ### 自分の構成詳細 — `GET /api/my-builds/me/{buildId}`
@@ -508,7 +512,6 @@ My Build のサービス統合テストでは次の項目を検証します。
 - メモリとストレージは一部追加方式ではなく、送信した配列全体で置き換えます。
 - パーツ間の互換性検証はまだありません。
 - パーツ価格を変更しても、既存構成の `totalPrice` は構成を変更した時に再計算されます。
-- Equipment の照会はログインユーザーに許可され、登録・変更・削除は `ADMIN_EMAILS` に登録された管理者のみ実行できます。
 
 ## Notes
 

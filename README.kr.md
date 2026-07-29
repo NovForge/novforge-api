@@ -302,6 +302,8 @@ DELETE /api/{domain}/{id}
 | 단일 부품 제거 | `DELETE` | `/api/my-builds/me/{buildId}/parts/{partType}` | Access Token |
 | 내 견적 삭제 | `DELETE` | `/api/my-builds/me/{buildId}` | Access Token |
 
+공개 견적 조회는 `Authorization` 헤더 없이 호출합니다. 잘못되거나 만료된 Bearer Token을 함께 보내면 공개 경로라도 `401 Unauthorized`가 발생할 수 있습니다. `/api/my-builds/me` 아래의 변경 API는 견적 공개 여부와 관계없이 소유자만 호출할 수 있습니다.
+
 ## 인증 흐름
 
 ```text
@@ -522,7 +524,6 @@ spring.jpa.hibernate.ddl-auto=update
 
 ## 현재 제한사항
 
-- Equipment 조회는 로그인 사용자에게 허용하며, 등록·수정·삭제는 `ADMIN_EMAILS`에 등록된 관리자만 실행할 수 있습니다.
 - My Build의 메모리·보조기억장치 PATCH는 전달된 배열 전체로 교체합니다.
 - 부품 간 소켓, 규격, 전력 등의 호환성 검증은 아직 없습니다.
 - 자동 부품 데이터 수집 및 단종 상태 관리 기능은 아직 없습니다.

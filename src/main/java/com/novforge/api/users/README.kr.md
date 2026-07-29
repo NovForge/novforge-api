@@ -48,7 +48,7 @@ Authorization: Bearer <Novforge Access Token>
 
 ## 관리자 설정
 
-`.env`에 전체 사용자 조회를 허용할 Google 이메일을 지정합니다.
+`.env`에 관리자 권한을 부여할 Google 이메일을 지정합니다. 관리자는 전체 사용자 목록을 조회하고 장비를 등록·수정·삭제할 수 있습니다.
 
 ```env
 ADMIN_EMAILS=admin@example.com
