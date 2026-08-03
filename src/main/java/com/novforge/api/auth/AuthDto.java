@@ -14,5 +14,6 @@ public final class AuthDto {
             String accessToken,
             String tokenType,
             long expiresIn,
+            boolean isAdmin,
             UserDto.Response user) {}
 }
