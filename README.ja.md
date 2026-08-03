@@ -19,7 +19,7 @@ Google OpenID Connect による会員登録・ログインに対応し、ログ�
 
 - Google アカウントによる会員登録
 - ログイン中ユーザー情報の照会
-- ニックネームとプロフィール画像 URL の変更
+- ニックネーム変更とプロフィール画像ファイルのアップロード
 - 退会
 - 管理者による全ユーザー一覧照会
 
@@ -263,7 +263,7 @@ src/
 | 全ユーザー一覧 | `GET` | `/api/users` | 管理者 Access Token |
 | 自分の情報 | `GET` | `/api/users/me` | Access Token |
 | ニックネーム変更 | `PATCH` | `/api/users/me` | Access Token |
-| プロフィール画像変更 | `PATCH` | `/api/users/profile-images` | Access Token |
+| プロフィール画像アップロード | `PATCH` | `/api/users/profile-images` | Access Token |
 | 退会 | `DELETE` | `/api/users/me` | Access Token |
 
 ### Equipment

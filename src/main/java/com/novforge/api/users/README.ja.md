@@ -281,7 +281,7 @@ Authorization: Bearer <Novforge Access Token>
 3. POST /api/auth/google で Novforge accessToken を発行
 4. GET /api/users/me で DB のユーザー情報を確認
 5. PATCH /api/users/me でニックネームを変更
-6. PATCH /api/users/profile-images でプロフィール画像 URL を変更
+6. PATCH /api/users/profile-images でプロフィール画像ファイルをアップロード
 7. 管理者アカウントの場合は GET /api/users で全ユーザー一覧を確認
 8. 必要に応じて DELETE /api/users/me で退会を確認
 ```
@@ -290,12 +290,15 @@ Authorization: Bearer <Novforge Access Token>
 
 | ステータスコード | 状況 |
 |---|---|
-| `400 Bad Request` | 必須項目の不足、空白のニックネーム、文字数制限超過、Google の必須 claim 不足 |
+| `400 Bad Request` | 必須項目の不足、空白のニックネーム、文字数制限超過、空の画像ファイル、Google の必須 claim 不足 |
 | `401 Unauthorized` | Access Token の不足・不正・有効期限切れ |
 | `403 Forbidden` | 管理者ではないユーザーが全ユーザー一覧を照会 |
 | `404 Not Found` | Access Token のユーザー ID に該当する DB ユーザーが存在しない |
 | `409 Conflict` | 登録済みの Google アカウント、または重複したニックネーム |
-| `415 Unsupported Media Type` | JSON Body のリクエストで `Content-Type: application/json` を使用していない |
+| `413 Payload Too Large` | プロフィール画像ファイルが許容サイズを超過 |
+| `415 Unsupported Media Type` | サポート対象外の画像形式、またはリクエストの Content-Type が不正 |
+| `502 Bad Gateway` | 画像ストレージから正常な応答を受信できない |
+| `503 Service Unavailable` | 画像ストレージの設定不足、またはアップロード失敗 |
 
 ## Notes
 
@@ -303,5 +306,5 @@ Authorization: Bearer <Novforge Access Token>
 - `/api/users/1` のような特定ユーザーを照会するエンドポイントは提供していません。
 - Google 上の名前とメールアドレスは、ニックネーム変更 API では変更されません。
 - 会員登録時はニックネームの前後の空白を除去してから重複を検証します。
-- プロフィール画像を削除するための `null` または空文字は現在許可していません。
+- 空のプロフィール画像ファイルは許可していません。
 - DB スキーマには `user_nickname VARCHAR(50) NOT NULL UNIQUE` が必要です。
