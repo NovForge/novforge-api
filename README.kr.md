@@ -19,7 +19,7 @@ Google OpenID Connect 기반 회원가입·로그인을 지원하며, 로그인 
 
 - Google 계정 기반 회원가입
 - 현재 사용자 정보 조회
-- 닉네임 및 프로필 이미지 URL 수정
+- 닉네임 수정 및 프로필 이미지 파일 업로드
 - 회원 탈퇴
 - 관리자 전체 사용자 목록 조회
 
@@ -263,7 +263,7 @@ src/
 | 전체 사용자 조회 | `GET` | `/api/users` | 관리자 Access Token |
 | 내 정보 조회 | `GET` | `/api/users/me` | Access Token |
 | 닉네임 수정 | `PATCH` | `/api/users/me` | Access Token |
-| 프로필 이미지 수정 | `PATCH` | `/api/users/profile-images` | Access Token |
+| 프로필 이미지 업로드 | `PATCH` | `/api/users/profile-images` | Access Token |
 | 회원 탈퇴 | `DELETE` | `/api/users/me` | Access Token |
 
 ### Equipment

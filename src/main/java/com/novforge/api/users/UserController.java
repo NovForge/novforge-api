@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -15,19 +16,24 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
     private final JwtDecoder googleJwtDecoder;
+    private final ProfileImageStorageService profileImageStorageService;
 
     public UserController(UserService userService,
-                          @Qualifier("googleJwtDecoder") JwtDecoder googleJwtDecoder) {
+                          @Qualifier("googleJwtDecoder") JwtDecoder googleJwtDecoder,
+                          ProfileImageStorageService profileImageStorageService) {
         this.userService = userService;
         this.googleJwtDecoder = googleJwtDecoder;
+        this.profileImageStorageService = profileImageStorageService;
     }
 
     @PostMapping
@@ -59,9 +65,22 @@ public class UserController {
         userService.withdraw(jwt);
     }
 
-    @PatchMapping("/profile-images")
+    @PatchMapping(value = "/profile-images", consumes = MediaType.APPLICATION_JSON_VALUE)
     public UserDto.Response updateProfileImage(@AuthenticationPrincipal Jwt jwt,
                                                @Valid @RequestBody UserDto.ProfileImageRequest request) {
         return userService.updateProfileImage(jwt, request);
+    }
+
+    @PatchMapping(value = "/profile-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public UserDto.Response uploadProfileImage(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestPart("profileImage") MultipartFile profileImage) {
+        UserDto.Response currentUser = userService.getMe(jwt);
+        ProfileImageStorageService.StoredProfileImage stored =
+                profileImageStorageService.upload(currentUser.userId(), profileImage);
+        UserDto.Response updatedUser = userService.updateProfileImage(
+                jwt, new UserDto.ProfileImageRequest(stored.publicUrl()));
+        profileImageStorageService.deletePreviousImage(currentUser.profileImage());
+        return updatedUser;
     }
 }
