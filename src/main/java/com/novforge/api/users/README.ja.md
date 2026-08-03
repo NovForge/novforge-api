@@ -4,7 +4,7 @@
 
 Google 認証を完了したユーザーを Novforge の `users` テーブルに登録し、ログイン中ユーザーの照会、ニックネーム変更、プロフィール画像変更、退会を処理する API です。管理者アカウントは全ユーザー一覧を照会できます。
 
-Google 上の名前、Google UID、メールアドレスはユーザー自身が変更できません。アプリ内で変更できるユーザー情報は、ニックネームとプロフィール画像 URL です。
+Google 上の名前、Google UID、メールアドレスはユーザー自身が変更できません。プロフィール画像ファイルは Supabase Storage に保存し、公開 URL のみをユーザーデータに保存します。
 
 ## API エンドポイント
 
@@ -15,7 +15,7 @@ Google 上の名前、Google UID、メールアドレスはユーザー自身が
 | 自分の情報を照会 | users | `/api/users/me` | `GET` | Access Token | Token の `user_id` でログイン中ユーザーの DB 情報を照会 |
 | ニックネーム変更 | users | `/api/users/me` | `PATCH` | Access Token | ログイン中ユーザーのニックネームのみ変更 |
 | 退会 | users | `/api/users/me` | `DELETE` | Access Token | ログイン中ユーザーの情報を DB から削除 |
-| プロフィール画像変更 | users | `/api/users/profile-images` | `PATCH` | Access Token | ログイン中ユーザーのプロフィール画像 URL を変更 |
+| プロフィール画像アップロード | users | `/api/users/profile-images` | `PATCH` | Access Token | 画像を Supabase Storage にアップロードして公開 URL を保存 |
 
 `POST /api/users` を除くエンドポイントでは、次の認証ヘッダーが必要です。
 
@@ -32,6 +32,7 @@ Authorization: Bearer <Novforge Access Token>
 | `UserDto.java` | 会員登録・変更リクエストとユーザーレスポンス DTO |
 | `UserRepository.java` | ユーザー ID、Google UID、ニックネームの照会および保存 |
 | `UserService.java` | 会員登録、重複検証、照会、変更、退会、管理者権限の検証 |
+| `ProfileImageStorageService.java` | 画像検証、Supabase Storage アップロード、以前の画像削除 |
 
 ## ユーザーデータモデル
 
@@ -223,22 +224,20 @@ Content-Type: application/json
 
 他のユーザーが使用中のニックネームを指定すると、`409 Conflict` が返されます。
 
-### プロフィール画像変更 — `PATCH /api/users/profile-images`
+### プロフィール画像アップロード — `PATCH /api/users/profile-images`
 
 ```http
 PATCH /api/users/profile-images
 Authorization: Bearer <Novforge Access Token>
-Content-Type: application/json
+Content-Type: multipart/form-data
 ```
 
-画像ファイルをアップロードするのではなく、プロフィール画像 URL の文字列のみを DB に保存します。
+`profileImage`フィールドで画像ファイルを送信します。JPEG、PNG、WebPのみ対応し、最大サイズは5MBです。実際のファイルヘッダーを検証してからSupabase Storageへアップロードします。
 
 #### Request
 
-```json
-{
-  "profileImage": "https://picsum.photos/200"
-}
+```text
+profileImage: avatar.jpg
 ```
 
 #### Response
@@ -249,11 +248,13 @@ Content-Type: application/json
   "userName": "Google上の名前",
   "userNickname": "ノブ作家",
   "userEmail": "user@example.com",
-  "profileImage": "https://picsum.photos/200",
+  "profileImage": "https://project.supabase.co/storage/v1/object/public/profiles/users/1/uuid.jpg",
   "createdAt": "2026-07-27T12:00:00Z",
   "updatedAt": "2026-07-27T13:05:00Z"
 }
 ```
+
+APIの`.env`に`SUPABASE_URL`、`SUPABASE_SECRET_KEY`、`SUPABASE_PROFILE_BUCKET`を設定します。Secret KeyはモバイルやWebクライアントに含めません。
 
 ### 退会 — `DELETE /api/users/me`
 

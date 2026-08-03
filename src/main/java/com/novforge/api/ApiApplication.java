@@ -18,6 +18,9 @@ public class ApiApplication {
 		setPropertyIfPresent(dotenv, "GOOGLE_CLIENT_ID");
 		setPropertyIfPresent(dotenv, "JWT_SECRET");
 		setPropertyIfPresent(dotenv, "ADMIN_EMAILS");
+		setPropertyIfPresent(dotenv, "SUPABASE_URL");
+		setPropertyIfPresent(dotenv, "SUPABASE_SECRET_KEY");
+		setPropertyIfPresent(dotenv, "SUPABASE_PROFILE_BUCKET");
 
 		SpringApplication.run(ApiApplication.class, args);
 	}
