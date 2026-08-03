@@ -62,7 +62,9 @@ public class UserController {
     @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void withdraw(@AuthenticationPrincipal Jwt jwt) {
+        String profileImage = userService.getMe(jwt).profileImage();
         userService.withdraw(jwt);
+        profileImageStorageService.deletePreviousImage(profileImage);
     }
 
     @PatchMapping(value = "/profile-images", consumes = MediaType.APPLICATION_JSON_VALUE)

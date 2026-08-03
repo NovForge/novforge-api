@@ -263,7 +263,7 @@ DELETE /api/users/me
 Authorization: Bearer <Novforge Access Token>
 ```
 
-ログイン中ユーザーを `users` テーブルから削除します。
+ログイン中ユーザーを `users` テーブルから削除します。ユーザーが保存した `my_build` と、その構成に属する `my_build_ram`、`my_build_storage` の関連行は JPA cascade により同時に削除されます。Supabase Storage にアップロードしたプロフィール画像も削除します。
 
 #### Response
 
