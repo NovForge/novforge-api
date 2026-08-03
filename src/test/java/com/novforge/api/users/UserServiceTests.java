@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.OneToMany;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -104,6 +106,14 @@ class UserServiceTests {
         userService.withdraw(jwt);
 
         verify(userRepository).delete(user);
+    }
+
+    @Test
+    void userRemovalCascadesToOwnedBuilds() throws NoSuchFieldException {
+        OneToMany relationship = User.class.getDeclaredField("myBuilds").getAnnotation(OneToMany.class);
+
+        assertThat(relationship.mappedBy()).isEqualTo("user");
+        assertThat(relationship.cascade()).contains(CascadeType.REMOVE);
     }
 
     @Test

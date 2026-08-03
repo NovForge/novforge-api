@@ -1,12 +1,17 @@
 package com.novforge.api.users;
 
+import com.novforge.api.mybuild.MyBuild;
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -40,6 +45,9 @@ public class User {
 
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private final Set<MyBuild> myBuilds = new LinkedHashSet<>();
 
     protected User() {}
 
