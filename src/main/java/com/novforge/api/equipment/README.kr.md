@@ -543,4 +543,4 @@ DELETE /api/gpus/1
 - 메인보드는 문서 기준 경로 `/api/mainboards`와 호환 경로 `/api/motherboards`를 모두 지원합니다.
 - CPU DB 컬럼 `cpu_manufacture`는 제공된 DB 명세의 이름을 그대로 사용합니다.
 - 메모리 수정일 DB 컬럼은 제공된 DB 명세대로 `update_at`입니다.
-- 이미지 파일 자체를 업로드하지 않고 `imageUrl` 문자열만 저장합니다.
+- 관리 API는 이미지 파일 업로드 대신 `imageUrl` 문자열을 저장합니다. 현재 장비 이미지는 API 정적 리소스로 제공합니다.

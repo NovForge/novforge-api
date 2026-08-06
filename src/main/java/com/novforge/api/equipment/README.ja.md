@@ -522,4 +522,4 @@ DELETE /api/gpus/1
 - マザーボードは仕様上の `/api/mainboards` と互換パス `/api/motherboards` の両方をサポートしています。
 - CPU の DB カラム `cpu_manufacture` は、提供された DB 仕様の名前をそのまま使用しています。
 - メモリの更新日時 DB カラムは、提供された DB 仕様どおり `update_at` です。
-- 画像ファイル自体はアップロードせず、`imageUrl` 文字列のみを保存します。
+- 管理APIでは画像ファイルをアップロードせず、`imageUrl` 文字列を保存します。現在の機器画像はAPIの静的リソースとして提供します。

@@ -58,7 +58,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/google", "/error").permitAll()
+                        .requestMatchers("/api/auth/google", "/error", "/equipment-images/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/my-builds/me", "/api/my-builds/me/**")
                         .authenticated()
